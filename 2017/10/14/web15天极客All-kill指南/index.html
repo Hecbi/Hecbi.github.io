@@ -1,0 +1,425 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>web15天极客All kill指南 | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="有很多新生问我web如何学习，如何入门。尽管在第一次小组培训的时候讲过一点点，但看大家还是不太会这里给出一个自认为可以快速入门，并可以在短时间内学习大量web基础知识的一个时间表，也算是方法论。 15天All kill指南并不代表15天真的可以做完所有web题目，只是说如果照着这份表单做，即使做不出来web题目，也可以大致了解web安全的一些常见方向。有基础的小伙伴可以在这份列表中各取所需。 请注">
+<meta property="og:type" content="article">
+<meta property="og:title" content="web15天极客All kill指南">
+<meta property="og:url" content="http://hebic.me/2017/10/14/web15天极客All-kill指南/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="有很多新生问我web如何学习，如何入门。尽管在第一次小组培训的时候讲过一点点，但看大家还是不太会这里给出一个自认为可以快速入门，并可以在短时间内学习大量web基础知识的一个时间表，也算是方法论。 15天All kill指南并不代表15天真的可以做完所有web题目，只是说如果照着这份表单做，即使做不出来web题目，也可以大致了解web安全的一些常见方向。有基础的小伙伴可以在这份列表中各取所需。 请注">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-10-14T06:30:32.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="web15天极客All kill指南">
+<meta name="twitter:description" content="有很多新生问我web如何学习，如何入门。尽管在第一次小组培训的时候讲过一点点，但看大家还是不太会这里给出一个自认为可以快速入门，并可以在短时间内学习大量web基础知识的一个时间表，也算是方法论。 15天All kill指南并不代表15天真的可以做完所有web题目，只是说如果照着这份表单做，即使做不出来web题目，也可以大致了解web安全的一些常见方向。有基础的小伙伴可以在这份列表中各取所需。 请注">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#1-5天：以最快的速度了解多门语言"><span class="toc-text">1-5天：以最快的速度了解多门语言</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#第一天："><span class="toc-text">第一天：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#第二-四天："><span class="toc-text">第二~四天：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#第五天："><span class="toc-text">第五天：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#6-7天：SQL注入学习"><span class="toc-text">6-7天：SQL注入学习</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#第六天："><span class="toc-text">第六天：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#第七天："><span class="toc-text">第七天：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#8天：各种工具的使用"><span class="toc-text">8天：各种工具的使用</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#第八天："><span class="toc-text">第八天：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#9天：学习各种概念"><span class="toc-text">9天：学习各种概念</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#第九天："><span class="toc-text">第九天：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#10-15-天：各种web安全漏洞"><span class="toc-text">10-15 天：各种web安全漏洞</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#第10-15天"><span class="toc-text">第10-15天</span></a></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-web15天极客All-kill指南" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">web15天极客All kill指南</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.10.14</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2017/10/14/web15天极客All-kill指南/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>有很多新生问我web如何学习，如何入门。尽管在第一次小组培训的时候讲过一点点，但看大家还是不太会这里给出一个自认为可以快速入门，并可以在短时间内学习大量web基础知识的一个时间表，也算是方法论。</p>
+<p>15天All kill指南并不代表15天真的可以做完所有web题目，只是说如果照着这份表单做，即使做不出来web题目，也可以大致了解web安全的一些常见方向。有基础的小伙伴可以在这份列表中各取所需。</p>
+<p>请注意：web安全是一个涉及广泛的领域，在入门的时候，很有可能你会为了学习A知识而先学习B和C知识，学习B，C知识前先要学习DEFG知识。因此目标导向的学习思路会使你在学习过程中不断接触到新的名词，新的知识，这需要你不断地学习，扩展你的知识面。另外在在不懂得时候，第一步想到的一定是：我怎么才能弄明白他。如果你想要问学长，那么提问的时候一定要加上你为了弄明白这个问题做了哪些事情。（因为学长不愿意回答什么都没有思考就提问的新生哦）如果你查询了百度，没有查到，那么你需要提一个令人愿意回答的问题：我遇到了XXXX问题，在百度搜索XXXXX，人们的回答是XXXX，我试了这些方法，并没有成功，那么我需要做些什么才可以解决这个问题？</p>
+<h3 id="1-5天：以最快的速度了解多门语言"><a href="#1-5天：以最快的速度了解多门语言" class="headerlink" title="1-5天：以最快的速度了解多门语言"></a>1-5天：以最快的速度了解多门语言</h3><h4 id="第一天："><a href="#第一天：" class="headerlink" title="第一天："></a>第一天：</h4><p>通过W3School以最快速度入门HTML，CSS和Javascript语言。地址：<a href="http://www.w3school.com.cn/" target="_blank" rel="noopener">http://www.w3school.com.cn/</a></p>
+<p>建议：在本地写同样的代码并查看结果是否和教程的结果相同。</p>
+<h4 id="第二-四天："><a href="#第二-四天：" class="headerlink" title="第二~四天："></a>第二~四天：</h4><p>下载并安装phpstudy。</p>
+<p>通过W3School以最快速度入门PHP，并在本地复现每一个教程中的代码，强调：不要复制网页中的代码，要自己手打。如果出现的结果和网页中的结果相同，则继续学习。地址：<a href="http://www.w3school.com.cn/php/index.asp" target="_blank" rel="noopener">http://www.w3school.com.cn/php/index.asp</a></p>
+<p>如果有些语句无法理解其含义，那就无脑抄一遍并执行，看到结果即可。请自行安排学习时间，调整学习效率，以至于在第四天的时候可以将PW3School PHP部分的“PHP数据库”学习完。（如果自愿爆肝学习，这是极好的，但请注意身体）</p>
+<h4 id="第五天："><a href="#第五天：" class="headerlink" title="第五天："></a>第五天：</h4><p>通过W3School学习SQL语言，了解select/insert/update/delete，以及union select的语法。</p>
+<p>本地执行SQL语言的方法如下：</p>
+<ol>
+<li>phpstudy开启，保证mysql是开启状态。</li>
+<li>进入phpstudy安装目录/mysql/bin</li>
+<li>在此处打开命令与提示符，或在其他地方打开cd到此处，输入mysql.exe -u root -proot，回车</li>
+<li>输入create database tuzishifuzhuishuaile; （注意句末有分号）并回车</li>
+<li>输入use tuzishifuzhuishuaile; 并回车</li>
+</ol>
+<h3 id="6-7天：SQL注入学习"><a href="#6-7天：SQL注入学习" class="headerlink" title="6-7天：SQL注入学习"></a>6-7天：SQL注入学习</h3><h4 id="第六天："><a href="#第六天：" class="headerlink" title="第六天："></a>第六天：</h4><p>既然学会了SQL语句，那就动手做一下SQL注入题目吧！但是做之前，除了知道PHP和SQL语言以外，还需要知道SQL注入是什么，怎么注入。这里有一个我当时入门的教程，认真的看完前三课，极客题目的第一道注入题目就不成问题了。如果三节课完全搞定，却依然做不出来，请私聊管理们，因为还有一点点小坑。地址：<a href="http://www.baimaoxueyuan.com/course/index/video/id/54" target="_blank" rel="noopener">http://www.baimaoxueyuan.com/course/index/video/id/54</a></p>
+<h4 id="第七天："><a href="#第七天：" class="headerlink" title="第七天："></a>第七天：</h4><p>我猜你可能会用一整天时间看SQL注入的视频教程，虽然短，但是你需要在本地自己操作一下。我觉得一天还是需要的。如果你可以在几个小时内搞定，那你肯定没有完全吸收。除非你是个学霸XD，那么第七天就可以开始做极客的“故道白云”的SQL注入题目啦！相信你肯定没问题。</p>
+<h3 id="8天：各种工具的使用"><a href="#8天：各种工具的使用" class="headerlink" title="8天：各种工具的使用"></a>8天：各种工具的使用</h3><h4 id="第八天："><a href="#第八天：" class="headerlink" title="第八天："></a>第八天：</h4><p>相信你SQL的100分已经拿到了，再接再厉！</p>
+<p>之后的课程就需要一些工具啦，我这里推荐一些工具供你学习：</p>
+<ol>
+<li>python：请安装好。并将python加入到环境变量中，以至于在随处打开命令与提示符窗口输入python都可以打开python，方法自行百度。</li>
+<li>hackbar：这是一个firefox浏览器的插件，对于修改GET和POST请求，用这个插件非常的方便，而且这个插件可以解码一些编码，比如url编码，base64编码。（如果你并不知道上面提到的名词是什么，请百度学习一下）</li>
+<li>burpsuite：这是在做web题目最最常用到的工具，工具的详细使用说明可以看<a href="https://t0data.gitbooks.io/burpsuite/content/chapter3.html，为了做web题目，只需要学习到第三章“数据拦截与控制”就可以了。" target="_blank" rel="noopener">https://t0data.gitbooks.io/burpsuite/content/chapter3.html，为了做web题目，只需要学习到第三章“数据拦截与控制”就可以了。</a></li>
+</ol>
+<h3 id="9天：学习各种概念"><a href="#9天：学习各种概念" class="headerlink" title="9天：学习各种概念"></a>9天：学习各种概念</h3><h4 id="第九天："><a href="#第九天：" class="headerlink" title="第九天："></a>第九天：</h4><p>第九天到了为什么还没有开始继续做题呢？是因为还有一些概念不懂就没法做题~</p>
+<p>那么下面给出一个你需要了解的概念的列表，你需要自己去百度查询到底这些是什么，这样下次别人滔滔不绝的时候起码能听懂他在说什么。如果你有精力，最好可以深入的学习一些这些东西，并自己实践一下。</p>
+<ol>
+<li><p>URL编码</p>
+</li>
+<li><p>HTML编码</p>
+</li>
+<li><p>Base64编码</p>
+</li>
+<li><p>数据包</p>
+</li>
+<li><p>HTTP响应头，都有哪些，都是做什么的</p>
+</li>
+<li><p>GET传参，POST传参，怎么传参</p>
+</li>
+<li><p>HTTP协议是什么</p>
+</li>
+<li><p>MD5是什么</p>
+</li>
+<li><p>github</p>
+</li>
+<li><p>writeup</p>
+</li>
+<li><p>webshell</p>
+<p>——以上是非安全概念，下面是安全概念—–</p>
+</li>
+<li><p>信息泄露/源码泄露</p>
+</li>
+<li><p>暴力破解</p>
+</li>
+<li><p>SQL注入</p>
+</li>
+<li><p>XSS</p>
+</li>
+<li><p>CSRF</p>
+</li>
+<li><p>远程命令执行</p>
+</li>
+<li><p>代码执行</p>
+</li>
+<li><p>文件包含</p>
+</li>
+<li><p>任意文件上传/下载/删除</p>
+</li>
+<li><p>逻辑漏洞</p>
+<p>——如果你精力旺盛，还可以了解一下下面的概念——</p>
+</li>
+<li><p>XXE</p>
+</li>
+<li><p>SSRF</p>
+</li>
+<li><p>序列化漏洞/反序列化漏洞</p>
+</li>
+<li><p>变量覆盖</p>
+</li>
+<li><p>DDOS</p>
+</li>
+<li><p>CRLF</p>
+</li>
+<li><p>DNS协议</p>
+</li>
+<li><p>Apache/IIS/Tomcat/Nginx</p>
+</li>
+</ol>
+<p>是不是很吓人！这么长！别担心，这些都是一些概念，只需要你知道这是啥东西就可以了，而且从11下面的内容，即使你并不了解也没关系，因为后面也会学习到。</p>
+<h3 id="10-15-天：各种web安全漏洞"><a href="#10-15-天：各种web安全漏洞" class="headerlink" title="10-15 天：各种web安全漏洞"></a>10-15 天：各种web安全漏洞</h3><h4 id="第10-15天"><a href="#第10-15天" class="headerlink" title="第10-15天"></a>第10-15天</h4><p>你终于弄明白了一大堆概念究竟是什么，现在终于可以开始学习安全漏洞，利用了！那么10到15天就是学习这些知识的时候了。</p>
+<p>提示：所有的漏洞请务必在本地复现</p>
+<ol>
+<li>SQL注入漏洞：sql-lab</li>
+<li>文件包含：<a href="http://www.cnblogs.com/iamstudy/articles/include_file.html" target="_blank" rel="noopener">http://www.cnblogs.com/iamstudy/articles/include_file.html</a></li>
+<li>逻辑漏洞：php是弱语言，要注意常见的用于判断的函数：<a href="http://www.blueshoes.org/en/developer/php_cheat_sheet" target="_blank" rel="noopener">http://www.blueshoes.org/en/developer/php_cheat_sheet</a></li>
+<li>变量覆盖：&lt;白帽子讲安全&gt; - php漏洞章节中所总结的</li>
+<li>代码执行：&lt;白帽子讲安全&gt; - php漏洞章节中所总结的</li>
+<li>xss漏洞：书籍：&lt;xss跨站脚本 攻击剖析与防御&gt; 、&lt;web前端黑客技术揭秘&gt; ，刚开始学会有点懵，而且东西也多，核心问题其实就是同源问题(各种跨域方式)，然后就是xss点的输出位置与构造(什么时候js编码，什么时候html编码等等)，最后就是xss能够实现的事情做攻击。</li>
+<li>csrf漏洞：<a href="http://wooyun.jozxing.cc/static/drops/web-15556.html" target="_blank" rel="noopener">http://wooyun.jozxing.cc/static/drops/web-15556.html</a></li>
+</ol>
+<p>好吧，我承认上面的漏洞对你来说要求太高了，五天我也觉得做不完。XD但如果你真的坚持到了15天，相信我，你在新生中肯定是TOP5，三叶草小组也欢迎做到这一步的你^_^</p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/10/07/一道题目writeup/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/10/16/hack-dat-kiwi-2017-writeup/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2017/10/14/web15天极客All-kill指南/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,356 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>JWT安全问题 | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="JWT，Json Web Token是一个基于Token的身份认证协议，可以在某些情况取代Session认证。他的优点是服务器不储存任何的会话信息，只依靠客户端发送的JWT认证。 JWT分为三个部分： Header+Payload+Signature Header: {alg:&amp;quot;RS256&amp;quot;} Payload: {&amp;quot;jti&amp;quot;:&amp;quot;1&amp;quot;,&amp;q">
+<meta property="og:type" content="article">
+<meta property="og:title" content="JWT安全问题">
+<meta property="og:url" content="http://hebic.me/2018/06/13/JWT安全问题/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="JWT，Json Web Token是一个基于Token的身份认证协议，可以在某些情况取代Session认证。他的优点是服务器不储存任何的会话信息，只依靠客户端发送的JWT认证。 JWT分为三个部分： Header+Payload+Signature Header: {alg:&amp;quot;RS256&amp;quot;} Payload: {&amp;quot;jti&amp;quot;:&amp;quot;1&amp;quot;,&amp;q">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-06-13T04:52:00.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="JWT安全问题">
+<meta name="twitter:description" content="JWT，Json Web Token是一个基于Token的身份认证协议，可以在某些情况取代Session认证。他的优点是服务器不储存任何的会话信息，只依靠客户端发送的JWT认证。 JWT分为三个部分： Header+Payload+Signature Header: {alg:&amp;quot;RS256&amp;quot;} Payload: {&amp;quot;jti&amp;quot;:&amp;quot;1&amp;quot;,&amp;q">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-JWT安全问题" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">JWT安全问题</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.06.13</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2018/06/13/JWT安全问题/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>JWT，Json Web Token是一个基于Token的身份认证协议，可以在某些情况取代Session认证。他的优点是服务器不储存任何的会话信息，只依靠客户端发送的JWT认证。</p>
+<p>JWT分为三个部分：</p>
+<p>Header+Payload+Signature</p>
+<p>Header:</p>
+<p><code>{alg:&quot;RS256&quot;}</code></p>
+<p>Payload:</p>
+<p><code>{&quot;jti&quot;:&quot;1&quot;,&quot;iat&quot;:1528630988,&quot;sub&quot;:&quot;测试用户1&quot;,&quot;exp&quot;:1528631588}</code></p>
+<p>Signature:</p>
+<p><code>乱码</code></p>
+<p>这个乱码是</p>
+<p><code>HMACSHA256( base64Encode(header) + &quot;.&quot; + base64Encode(payload), secret)</code></p>
+<p>签发流程：</p>
+<p>服务器生成payload和header，根据加密算法（RS256或其他）和一串secret对header和payload加密作为客户端的Cookie。</p>
+<p>认证流程：</p>
+<p>客户端每次访问都带着Cookie，服务器收到Cookie后使用对应的公钥或秘钥再次加密header和payload与发送来的cookie对比，相同则通过。</p>
+<p>攻击面：</p>
+<ol>
+<li>修改算法攻击：加密方法是RS256，此时获得了公钥（加密秘钥）无法获得解密秘钥，可以修改RS256为HS256，让浏览器强行用公钥解密。</li>
+<li>秘钥可控：通过一些方法可以获得任意用户的秘钥，就可以通过秘钥伪造jwt登陆任意用户了。</li>
+<li>秘钥爆破：在HS签名算法时，只有一个秘钥，秘钥是否比较强就很重要了。</li>
+<li>空秘钥攻击：JWT RFC允许空秘钥。得到一个token，base64decode他，把头部的签名方法改成None或者none提交</li>
+</ol>
+<p>防御方法：</p>
+<ol>
+<li>使用复杂的keys和secrets</li>
+<li>更新正在使用的JWT库，确保没有CVE（2018-0114，Go-Jose     version&lt;=1.0.5）</li>
+<li>检查过期时间</li>
+<li>加强算法</li>
+</ol>
+<p>利用java的jsontokenweb实现jwt</p>
+<p>创建jwt：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="title">StringcreateJWT</span><span class="params">(String id, String subject, <span class="keyword">long</span> ttlMillis)</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="comment">// 加密算法</span></span><br><span class="line"></span><br><span class="line">SignatureAlgorithmsignatureAlgorithm = SignatureAlgorithm.HS256;</span><br><span class="line"></span><br><span class="line">longnowMillis = System.currentTimeMillis();</span><br><span class="line"></span><br><span class="line">Datenow = <span class="keyword">new</span> Date(nowMillis);</span><br><span class="line"></span><br><span class="line">SecretKeykey = generalKey();</span><br><span class="line"></span><br><span class="line">JwtBuilderbuilder = Jwts.builder()</span><br><span class="line"></span><br><span class="line">.setId(id)</span><br><span class="line"></span><br><span class="line">.setIssuedAt(now)</span><br><span class="line"></span><br><span class="line">.setSubject(subject)</span><br><span class="line"></span><br><span class="line">    .signWith(signatureAlgorithm, key);</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(ttlMillis &gt;= <span class="number">0</span>) &#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">long</span> expMillis = nowMillis + ttlMillis;</span><br><span class="line"></span><br><span class="line">    Date exp = <span class="keyword">new</span> Date(expMillis);</span><br><span class="line"></span><br><span class="line">   builder.setExpiration(exp);<span class="comment">//超时时间</span></span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">returnbuilder.compact();</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>检验jwt：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="title">ClaimsparseJWT</span><span class="params">(String jwt)</span> <span class="keyword">throws</span> Exception</span>&#123;</span><br><span class="line"></span><br><span class="line">SecretKeykey = generalKey();</span><br><span class="line"></span><br><span class="line">Claimsclaims = Jwts.parser()         </span><br><span class="line"></span><br><span class="line">   .setSigningKey(key)</span><br><span class="line"></span><br><span class="line">   .parseClaimsJws(jwt).getBody();</span><br><span class="line"></span><br><span class="line"><span class="keyword">return</span> claims;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>参考：</p>
+<ol>
+<li>基础： <a href="https://www.anquanke.com/post/id/145540" target="_blank" rel="noopener">https://www.anquanke.com/post/id/145540</a></li>
+<li>ppt： <a href="https://www.slideshare.net/snyff/jwt-insecurity" target="_blank" rel="noopener">Jwt == insecurity?</a></li>
+</ol>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/05/10/struts2系列——S2漏洞/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/06/20/SCTF2018-Zhuanxv-Writeup/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2018/06/13/JWT安全问题/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

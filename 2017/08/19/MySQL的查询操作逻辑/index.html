@@ -1,0 +1,321 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>MySQL的查询操作逻辑 | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="就select语句而言： （来自官方手册）1234567891011121314151617181920212223SELECT    [ALL | DISTINCT | DISTINCTROW ]      [HIGH_PRIORITY]      [STRAIGHT_JOIN]      [SQL_SMALL_RESULT] [SQL_BIG_RESULT] [SQL_BUFFER_RESUL">
+<meta property="og:type" content="article">
+<meta property="og:title" content="MySQL的查询操作逻辑">
+<meta property="og:url" content="http://hebic.me/2017/08/19/MySQL的查询操作逻辑/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="就select语句而言： （来自官方手册）1234567891011121314151617181920212223SELECT    [ALL | DISTINCT | DISTINCTROW ]      [HIGH_PRIORITY]      [STRAIGHT_JOIN]      [SQL_SMALL_RESULT] [SQL_BIG_RESULT] [SQL_BUFFER_RESUL">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-08-20T00:55:26.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="MySQL的查询操作逻辑">
+<meta name="twitter:description" content="就select语句而言： （来自官方手册）1234567891011121314151617181920212223SELECT    [ALL | DISTINCT | DISTINCTROW ]      [HIGH_PRIORITY]      [STRAIGHT_JOIN]      [SQL_SMALL_RESULT] [SQL_BIG_RESULT] [SQL_BUFFER_RESUL">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-MySQL的查询操作逻辑" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">MySQL的查询操作逻辑</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.08.19</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2017/08/19/MySQL的查询操作逻辑/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>就select语句而言：<br> （来自官方手册）<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line">SELECT</span><br><span class="line">    [ALL | DISTINCT | DISTINCTROW ]</span><br><span class="line">      [HIGH_PRIORITY]</span><br><span class="line">      [STRAIGHT_JOIN]</span><br><span class="line">      [SQL_SMALL_RESULT] [SQL_BIG_RESULT] [SQL_BUFFER_RESULT]</span><br><span class="line">      [SQL_CACHE | SQL_NO_CACHE] [SQL_CALC_FOUND_ROWS]</span><br><span class="line">    select_expr [, select_expr ...]</span><br><span class="line">    [FROM table_references</span><br><span class="line">      [PARTITION partition_list]</span><br><span class="line">    [WHERE where_condition]</span><br><span class="line">    [GROUP BY &#123;col_name | expr | position&#125;</span><br><span class="line">      [ASC | DESC], ... [WITH ROLLUP]]</span><br><span class="line">    [HAVING where_condition]</span><br><span class="line">    [ORDER BY &#123;col_name | expr | position&#125;</span><br><span class="line">      [ASC | DESC], ...]</span><br><span class="line">    [LIMIT &#123;[offset,] row_count | row_count OFFSET offset&#125;]</span><br><span class="line">    [PROCEDURE procedure_name(argument_list)]</span><br><span class="line">    [INTO OUTFILE &apos;file_name&apos;</span><br><span class="line">        [CHARACTER SET charset_name]</span><br><span class="line">        export_options</span><br><span class="line">      | INTO DUMPFILE &apos;file_name&apos;</span><br><span class="line">      | INTO var_name [, var_name]]</span><br><span class="line">    [FOR UPDATE | LOCK IN SHARE MODE]]</span><br></pre></td></tr></table></figure></p>
+<p>Mysql对于一句<code>select query</code>的处理是从最上面的子句执行，每执行一句子句就生成虚拟表V，将虚拟表V作为下一个子句的输入，如果没有遇到子句则跳过寻找下一个可能的子句，直到执行到最后一个子句。将生成的最后一个表返回到用户界面，而执行顺序中的虚拟表对用户是透明的。其他语法的查询均遵从这一方法。<br>而报错注入的特性是当执行到执行到报错函数处，停止后面语句的执行并抛出错误到用户界面。基于这一特点，可以构造出并不符合语法规则的报错语句。在 <code>http://blog.csdn.net/niexinming/article/details/55001126</code> 中mysql执行的语句是：<code>sql
+update `table` t left join (select char(97) as user from dual where (extractvalue(1,concat(0x7e,(select user()),0x7e)))) tt on tt.user=`t.username` set username =&#39;admin&#39; where id=1;</code>修改为：<code>sql
+update `users` t left join (select (extractvalue(1,concat(0x7e,(select user()),0x7e)))) tt on tt.a=`t.a` set username =&#39;admin&#39; where id=1;</code>依然可以执行。但由于子查询优先级低于主句，因此不可以改变join on语法的完整性。<br>另外小密圈里有人问<code>select * from test_***</code> 中的***可控，但是没有test_存在的表，能否注入。回答是不可以的，因为执行到from前没有可控内容，from就会被优先执行，由于表不存在，就会立刻退出并不执行后面的句子，因此是不可以注入的。如果有师傅有什么注入的姿势还请指教</p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/08/19/XSS的关于同源基础知识……/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/08/19/Mysql操作中的条件竞争漏洞/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2017/08/19/MySQL的查询操作逻辑/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

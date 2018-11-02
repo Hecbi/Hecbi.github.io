@@ -1,0 +1,341 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>hack dat kiwi 2017 writeup | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="Web50 MD5 Games 1web签到题，一道弱类型题目。题目代码： 12345678910111213141516171819202122&amp;lt;?phpif (isset($_GET[&apos;src&apos;]))    highlight_file(__FILE__) and die();if (isset($_GET[&apos;md5&apos;]))&amp;#123;    $md5=$_GET[&apos;md5&apos;];">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hack dat kiwi 2017 writeup">
+<meta property="og:url" content="http://hebic.me/2017/10/16/hack-dat-kiwi-2017-writeup/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="Web50 MD5 Games 1web签到题，一道弱类型题目。题目代码： 12345678910111213141516171819202122&amp;lt;?phpif (isset($_GET[&apos;src&apos;]))    highlight_file(__FILE__) and die();if (isset($_GET[&apos;md5&apos;]))&amp;#123;    $md5=$_GET[&apos;md5&apos;];">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-10-16T03:14:32.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="hack dat kiwi 2017 writeup">
+<meta name="twitter:description" content="Web50 MD5 Games 1web签到题，一道弱类型题目。题目代码： 12345678910111213141516171819202122&amp;lt;?phpif (isset($_GET[&apos;src&apos;]))    highlight_file(__FILE__) and die();if (isset($_GET[&apos;md5&apos;]))&amp;#123;    $md5=$_GET[&apos;md5&apos;];">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Web50-MD5-Games-1"><span class="toc-text">Web50 MD5 Games 1</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Web150-MD5-Games-2"><span class="toc-text">Web150 MD5 Games 2</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Web120-Hasher"><span class="toc-text">Web120 Hasher</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Web-150-Fractal"><span class="toc-text">Web 150 Fractal</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-hack-dat-kiwi-2017-writeup" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">hack dat kiwi 2017 writeup</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.10.16</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2017/10/16/hack-dat-kiwi-2017-writeup/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h1 id="Web50-MD5-Games-1"><a href="#Web50-MD5-Games-1" class="headerlink" title="Web50 MD5 Games 1"></a>Web50 MD5 Games 1</h1><p>web签到题，一道弱类型题目。题目代码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>($_GET[<span class="string">'src'</span>]))</span><br><span class="line">    highlight_file(<span class="keyword">__FILE__</span>) <span class="keyword">and</span> <span class="keyword">die</span>();</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>($_GET[<span class="string">'md5'</span>]))</span><br><span class="line">&#123;</span><br><span class="line">    $md5=$_GET[<span class="string">'md5'</span>];</span><br><span class="line">    <span class="keyword">if</span> ($md5==md5($md5))</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">"Wonderbubulous! Flag is "</span>.<span class="keyword">require</span> <span class="keyword">__DIR__</span>.<span class="string">"/flag.php"</span>;</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">echo</span> <span class="string">"Nah... '"</span>,htmlspecialchars($md5),<span class="string">"' not the same as "</span>,md5($md5);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line">&lt;p&gt;Find a string that has a MD5 digest equal to itself!&lt;/p&gt;</span><br><span class="line">&lt;form&gt;</span><br><span class="line">    &lt;label&gt;Answer: &lt;/label&gt;</span><br><span class="line">    &lt;input type=<span class="string">'text'</span> name=<span class="string">'md5'</span> /&gt;</span><br><span class="line">    &lt;input type=<span class="string">'submit'</span> /&gt;</span><br><span class="line">&lt;/form&gt;</span><br><span class="line"></span><br><span class="line">&lt;a href=<span class="string">'?src'</span>&gt;Source Code&lt;/a&gt;</span><br></pre></td></tr></table></figure>
+<p>要求$md5==md5($md5)，写个脚本跑一下，几分钟可以跑出来。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">for</span> ($i=<span class="number">0</span>; $i &lt; <span class="number">2147483647</span>; $i++) &#123; </span><br><span class="line">	<span class="keyword">if</span> (is_numeric(md5(<span class="string">"0e"</span>.$i))&amp;&amp;substr(md5(<span class="string">"0e"</span>.$i), <span class="number">0</span>,<span class="number">2</span>)==<span class="string">"0e"</span>)&#123;</span><br><span class="line">		<span class="keyword">print</span> $i . <span class="string">"---"</span>;</span><br><span class="line">	&#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="Web150-MD5-Games-2"><a href="#Web150-MD5-Games-2" class="headerlink" title="Web150 MD5 Games 2"></a>Web150 MD5 Games 2</h1><p>这道题到比赛结束还没有人做出来，后来官方放出writeup，感觉思路新颖非常值得学习。于是自己还没有跑出来结果，就放给自己学校的比赛了，被大家一顿吐槽。于是先收题，等自己跑出来确定能在比赛前做出来后再放题。wp比赛结束后补上</p>
+<h1 id="Web120-Hasher"><a href="#Web120-Hasher" class="headerlink" title="Web120 Hasher"></a>Web120 Hasher</h1><p>题目给出源码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br></pre></td><td class="code"><pre><span class="line"> <span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">if</span> (!shell_exec(<span class="string">"which openssl"</span>))</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">"Challenge Error: need openssl installed\n"</span>);</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>($_GET[<span class="string">'code'</span>]))</span><br><span class="line">    <span class="keyword">die</span>(highlight_file(<span class="keyword">__FILE__</span>));</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">str_xor</span><span class="params">($str,$max_depth=<span class="number">0</span>,$depth=<span class="number">0</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    $mid=strlen($str)/<span class="number">2</span>;</span><br><span class="line">    $left=substr($str,<span class="number">0</span>,$mid);</span><br><span class="line">    $right=substr($str,$mid);</span><br><span class="line">    <span class="keyword">if</span> ($depth&lt;$max_depth)</span><br><span class="line">    &#123;</span><br><span class="line">        $left=str_xor($left,$max_depth,$depth+<span class="number">1</span>);</span><br><span class="line">        $right=str_xor($right,$max_depth,$depth+<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    $out=<span class="string">""</span>;</span><br><span class="line">    <span class="keyword">for</span> ($i=<span class="number">0</span>;$i&lt;strlen($left);++$i)</span><br><span class="line">        $out.=$left[$i]^$right[$i];</span><br><span class="line">    <span class="keyword">return</span> $out;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">hasher</span><span class="params">($string)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!ctype_alnum($string))</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    $t=trim(shell_exec(<span class="string">"echo -n '&#123;$string&#125;' | openssl dgst -whirlpool | openssl dgst -rmd160"</span>));</span><br><span class="line">    $t=str_replace(<span class="string">"(stdin)= "</span>,<span class="string">""</span>,$t); <span class="comment">//some linux adds this</span></span><br><span class="line">    <span class="keyword">if</span> (!$t)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">return</span> bin2hex(str_xor(hex2bin($t),<span class="number">1</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$user=<span class="string">'admin'</span>;</span><br><span class="line">extract($_POST);</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>($password))</span><br><span class="line">&#123;</span><br><span class="line">    <span class="keyword">if</span> (hasher($user)==hasher($password) <span class="keyword">and</span> $user!=$password)</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">"Welcome! Flag is: "</span>.<span class="keyword">include</span>(<span class="string">"flag.php"</span>);</span><br><span class="line">    <span class="keyword">else</span></span><br><span class="line">        <span class="keyword">echo</span> <span class="string">"Invalid password.&lt;br/&gt;"</span>;</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br><span class="line"></span><br><span class="line">&lt;form method=<span class="string">'post'</span>&gt;</span><br><span class="line">    &lt;label&gt;Password:&lt;/label&gt;</span><br><span class="line">    &lt;input type=<span class="string">'password'</span> name=<span class="string">'password'</span> /&gt;</span><br><span class="line">    &lt;input type=<span class="string">'submit'</span> /&gt;</span><br><span class="line">&lt;/form&gt;</span><br><span class="line"></span><br><span class="line">&lt;a href=<span class="string">'./?code'</span>&gt;Source Code&lt;/a&gt; <span class="number">1</span></span><br></pre></td></tr></table></figure>
+<p>最后的要求是</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (hasher($user)==hasher($password) <span class="keyword">and</span> $user!=$password)</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">"Welcome! Flag is: "</span>.<span class="keyword">include</span>(<span class="string">"flag.php"</span>);</span><br></pre></td></tr></table></figure>
+<p>hasher函数用openssl加密一次，再用str_xor函数加密一次。因为是==还是可以用弱类型绕过，就心想着爆破了。自己电脑里装了个pentestbox，自带openssl扩展，没想到计算结果和linux下是不同的。win下跑了半个多小时得到的结果是错误的，放到linux下几分钟就跑出来了。</p>
+<p>exp1.php:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">if</span> (!shell_exec(<span class="string">"which openssl"</span>))</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">"Challenge Error: need openssl installed\n"</span>);</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>($_GET[<span class="string">'code'</span>]))</span><br><span class="line">    <span class="keyword">die</span>(highlight_file(<span class="keyword">__FILE__</span>));</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">str_xor</span><span class="params">($str,$max_depth=<span class="number">0</span>,$depth=<span class="number">0</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    $mid=strlen($str)/<span class="number">2</span>;</span><br><span class="line">    $left=substr($str,<span class="number">0</span>,$mid);</span><br><span class="line">    $right=substr($str,$mid);</span><br><span class="line">    <span class="keyword">if</span> ($depth&lt;$max_depth)</span><br><span class="line">    &#123;</span><br><span class="line">        $left=str_xor($left,$max_depth,$depth+<span class="number">1</span>);</span><br><span class="line">        $right=str_xor($right,$max_depth,$depth+<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    $out=<span class="string">""</span>;</span><br><span class="line">    <span class="keyword">for</span> ($i=<span class="number">0</span>;$i&lt;strlen($left);++$i)</span><br><span class="line">        $out.=$left[$i]^$right[$i];</span><br><span class="line">    <span class="keyword">return</span> $out;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">hasher</span><span class="params">($string)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!ctype_alnum($string))</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    $t=trim(shell_exec(<span class="string">"echo -n '&#123;$string&#125;' | openssl dgst -whirlpool | openssl dgst -rmd160"</span>));</span><br><span class="line">    $t=str_replace(<span class="string">"(stdin)= "</span>,<span class="string">""</span>,$t); <span class="comment">//some linux adds this</span></span><br><span class="line">    <span class="keyword">if</span> (!$t)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">return</span> bin2hex(str_xor(hex2bin($t),<span class="number">1</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> ($i=<span class="number">0</span>; $i &lt; <span class="number">10000000</span>; $i++) &#123; </span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span>(is_numeric(hasher(<span class="string">"0e"</span>.md5($i)))&amp;&amp;substr(hasher(<span class="string">"0e"</span>.md5($i)), <span class="number">0</span>,<span class="number">2</span>)==<span class="string">"0e"</span>)&#123;</span><br><span class="line">		<span class="keyword">echo</span> $i;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>exp2.php:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="keyword">if</span> (!shell_exec(<span class="string">"which openssl"</span>))</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">"Challenge Error: need openssl installed\n"</span>);</span><br><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>($_GET[<span class="string">'code'</span>]))</span><br><span class="line">    <span class="keyword">die</span>(highlight_file(<span class="keyword">__FILE__</span>));</span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">str_xor</span><span class="params">($str,$max_depth=<span class="number">0</span>,$depth=<span class="number">0</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    $mid=strlen($str)/<span class="number">2</span>;</span><br><span class="line">    $left=substr($str,<span class="number">0</span>,$mid);</span><br><span class="line">    $right=substr($str,$mid);</span><br><span class="line">    <span class="keyword">if</span> ($depth&lt;$max_depth)</span><br><span class="line">    &#123;</span><br><span class="line">        $left=str_xor($left,$max_depth,$depth+<span class="number">1</span>);</span><br><span class="line">        $right=str_xor($right,$max_depth,$depth+<span class="number">1</span>);</span><br><span class="line">    &#125;</span><br><span class="line">    $out=<span class="string">""</span>;</span><br><span class="line">    <span class="keyword">for</span> ($i=<span class="number">0</span>;$i&lt;strlen($left);++$i)</span><br><span class="line">        $out.=$left[$i]^$right[$i];</span><br><span class="line">    <span class="keyword">return</span> $out;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">hasher</span><span class="params">($string)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (!ctype_alnum($string))</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    $t=trim(shell_exec(<span class="string">"echo -n '&#123;$string&#125;' | openssl dgst -whirlpool | openssl dgst -rmd160"</span>));</span><br><span class="line">    $t=str_replace(<span class="string">"(stdin)= "</span>,<span class="string">""</span>,$t); <span class="comment">//some linux adds this</span></span><br><span class="line">    <span class="keyword">if</span> (!$t)</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">    <span class="keyword">return</span> bin2hex(str_xor(hex2bin($t),<span class="number">1</span>));</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> ($i=<span class="number">0</span>; $i &lt; <span class="number">10000000</span>; $i++) &#123; </span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span>(is_numeric(hasher(<span class="string">"0e"</span>.$i))&amp;&amp;substr(hasher(<span class="string">"0e"</span>.$i), <span class="number">0</span>,<span class="number">2</span>)==<span class="string">"0e"</span>)&#123;</span><br><span class="line">		<span class="keyword">echo</span> $i;</span><br><span class="line">	&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h1 id="Web-150-Fractal"><a href="#Web-150-Fractal" class="headerlink" title="Web 150 Fractal"></a>Web 150 Fractal</h1><p>一道商店题目。有几个页面：主页，订阅，购买，什么什么的。商店卖很多东西，flag的价格是10万，自己的钱是0 。在订阅页面输入一个邮箱，就可以返回一个优惠券，优惠券可以打9折再减5美元。测试了一下，不同的优惠券，在不同的时间，均不能叠加，一次只能使用一个优惠券。另外题目的url是index.php?page=home，有page参数就很像一个本地文件包含。测试了所有的payload均失败，自动跳转回home，猜测是白名单控制的。在index.php中有导航栏和输入优惠券的地方。</p>
+<p>本以为这道题是一个逻辑漏洞，结果是一个本地文件包含。题目的做法是index.php?page=index。这样就导致了包含，每一层index.php都会读取page参数并读取index.php，在本地测试最大的嵌套数量是100个，这道题目在自身递归包含100次之后在最内层的优惠券输入框中输入优惠券，就会递归向外传递，在最外层的窗口flag的价格变为0，购买即可。</p>
+<p>昨晚和小伙伴一起写了个简单的demo:</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">session_start();</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (!<span class="keyword">isset</span>($_SESSION[<span class="string">'youhuiquan'</span>]))&#123;</span><br><span class="line">    $_SESSION[<span class="string">'youhuiquan'</span>] = <span class="string">'youhuiquan'</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (!<span class="keyword">isset</span>($money))&#123;</span><br><span class="line">    $money = <span class="number">100000</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>($_SESSION[<span class="string">'youhuiquan'</span>]))&#123;</span><br><span class="line">	$money = <span class="number">0.9</span> * $money - <span class="number">5</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> ($money &lt; <span class="number">0</span>)&#123;</span><br><span class="line">    <span class="keyword">die</span>(<span class="string">'flagIsHere'</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>(<span class="keyword">isset</span>($_GET[<span class="string">'page'</span>]))&#123;</span><br><span class="line">	<span class="keyword">include</span>($_GET[<span class="string">'page'</span>].<span class="string">".php"</span>);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">unset</span>($_SESSION[<span class="string">'youhuiquan'</span>]);</span><br><span class="line"></span><br><span class="line"><span class="keyword">echo</span> <span class="string">"money: "</span> . $money;</span><br></pre></td></tr></table></figure>
+<p>保存为index.php。访问index.php?page=index</p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/10/14/web15天极客All-kill指南/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/10/25/cobalt-strike-persistence-with-javascript/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2017/10/16/hack-dat-kiwi-2017-writeup/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

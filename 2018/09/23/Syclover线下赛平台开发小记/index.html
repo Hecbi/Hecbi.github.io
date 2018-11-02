@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>Syclover线下赛平台开发小记 | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="起因今年SCTF的决赛举办这段时间正碰上回家于是没有参与，回学校的时候比赛马上就要开始了。临近考试周，师傅们准备考试还要出题布置环境，非常辛苦。但万万没想到比赛当天因为比赛平台的原因大家干瞪眼了一上午！到了中午比赛才打起来。于是就有了写一个自己的线下赛平台的想法。一直到了假期都没人搞，我想最近实习工作比较轻松，趁着自主学习的时候写个线下赛平台吧，于是和刘师傅一拍即合，前前后后写了接近一个月平台终于">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Syclover线下赛平台开发小记">
+<meta property="og:url" content="http://hebic.me/2018/09/23/Syclover线下赛平台开发小记/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="起因今年SCTF的决赛举办这段时间正碰上回家于是没有参与，回学校的时候比赛马上就要开始了。临近考试周，师傅们准备考试还要出题布置环境，非常辛苦。但万万没想到比赛当天因为比赛平台的原因大家干瞪眼了一上午！到了中午比赛才打起来。于是就有了写一个自己的线下赛平台的想法。一直到了假期都没人搞，我想最近实习工作比较轻松，趁着自主学习的时候写个线下赛平台吧，于是和刘师傅一拍即合，前前后后写了接近一个月平台终于">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="https://i.imgur.com/hksnaZL.png">
+<meta property="og:updated_time" content="2018-09-23T05:17:20.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Syclover线下赛平台开发小记">
+<meta name="twitter:description" content="起因今年SCTF的决赛举办这段时间正碰上回家于是没有参与，回学校的时候比赛马上就要开始了。临近考试周，师傅们准备考试还要出题布置环境，非常辛苦。但万万没想到比赛当天因为比赛平台的原因大家干瞪眼了一上午！到了中午比赛才打起来。于是就有了写一个自己的线下赛平台的想法。一直到了假期都没人搞，我想最近实习工作比较轻松，趁着自主学习的时候写个线下赛平台吧，于是和刘师傅一拍即合，前前后后写了接近一个月平台终于">
+<meta name="twitter:image" content="https://i.imgur.com/hksnaZL.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#起因"><span class="toc-text">起因</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#架构"><span class="toc-text">架构</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#构思"><span class="toc-text">构思</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#比赛规则"><span class="toc-text">比赛规则</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Web界面"><span class="toc-text">Web界面</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#分数统计服务"><span class="toc-text">分数统计服务</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#安全部署"><span class="toc-text">安全部署</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#后记"><span class="toc-text">后记</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-Syclover线下赛平台开发小记" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">Syclover线下赛平台开发小记</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.09.23</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2018/09/23/Syclover线下赛平台开发小记/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h2 id="起因"><a href="#起因" class="headerlink" title="起因"></a>起因</h2><p>今年SCTF的决赛举办这段时间正碰上回家于是没有参与，回学校的时候比赛马上就要开始了。临近考试周，师傅们准备考试还要出题布置环境，非常辛苦。但万万没想到比赛当天因为比赛平台的原因大家干瞪眼了一上午！到了中午比赛才打起来。于是就有了写一个自己的线下赛平台的想法。一直到了假期都没人搞，我想最近实习工作比较轻松，趁着自主学习的时候写个线下赛平台吧，于是和刘师傅一拍即合，前前后后写了接近一个月平台终于基本完工了，记录一下一些东西。</p>
+<h2 id="架构"><a href="#架构" class="headerlink" title="架构"></a>架构</h2><p>平台使用Django编写，考虑到表比较少，连接关系并不复杂，就用了自带的Sqlite作为持久层。</p>
+<h2 id="构思"><a href="#构思" class="headerlink" title="构思"></a>构思</h2><p>由于是两个人写平台，就想着两个人分开写不同的部分，两个部分通过接口通信，各自有各自的数据库和表，最后拼起来就完成了。最初的想法是将攻防平台分为两个部分：Web界面（包括登录、管理员后台、选手比赛界面）和分数统计服务（Flag分发、选手分数的修改）。</p>
+<p><img src="https://i.imgur.com/hksnaZL.png" alt="最初的构想"></p>
+<h2 id="比赛规则"><a href="#比赛规则" class="headerlink" title="比赛规则"></a>比赛规则</h2><p>比赛规则的两个特征是：</p>
+<ol>
+<li>比赛的总分不变（除非管理员加分），分数在各个队伍之间流动</li>
+<li>获得Flag的方式是比赛机器curl flag机</li>
+</ol>
+<p>因为采用0和博弈，分数也是动态的，所以并不会提交一个flag分数就立刻增加（但是比赛界面会看到成功攻击的信息），而是发送到分数统计服务。分数统计服务不仅接受选手提交的Flag，还会接受Check机的结果、管理员后台给选手加分扣分数据，将他们统一计算，新的一轮开始时更新分数。</p>
+<p>由于获得Flag的方法是curl flag机，因此我们做出的前提是一个比赛可以有多个web题，但是只有一个flag。在比赛规则方面想要改变这个情况需要让不同的web题目有不同的机器，但是设计之初并没有如此考虑，因此这是一个设计的缺陷。</p>
+<h3 id="Web界面"><a href="#Web界面" class="headerlink" title="Web界面"></a>Web界面</h3><p>Django自带一个管理员工具，可以对数据库做增删改查，极大地缩短了管理员后台编写的时间。在保留默认管理员界面的基础上，增加了向刘师傅的API接口提供队伍信息和管理员直接扣除选手分数的功能。这里要解释一下这两个功能，因为比赛分数的核心部分是分数统计服务，因此与队伍相关的大多数数据保存在刘师傅的表中。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 刘师傅的队伍表</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">TeamScoreProfile</span><span class="params">(models.Model)</span>:</span></span><br><span class="line">    user = models.OneToOneField(User, on_delete=models.CASCADE)</span><br><span class="line">    numberOfTeam = models.IntegerField()</span><br><span class="line">    numberOfRounds = models.IntegerField(default=<span class="number">80</span>)</span><br><span class="line">    totalScorePerRound = models.FloatField()</span><br><span class="line">    teamName = models.CharField(max_length=<span class="number">128</span>, unique=<span class="keyword">True</span>)</span><br><span class="line">    teamToken = models.CharField(max_length=<span class="number">128</span>)</span><br><span class="line">    totalScore = models.FloatField(default=<span class="number">10000.0</span>)</span><br><span class="line">    compareWithLastRound = models.FloatField(default=<span class="number">0.0</span>)</span><br><span class="line">    webGet = models.FloatField(default=<span class="number">0</span>)</span><br><span class="line">    pwnGet = models.FloatField(default=<span class="number">0</span>)</span><br><span class="line">    checkGet = models.FloatField(default=<span class="number">0</span>)</span><br><span class="line">    webLoss = models.FloatField(default=<span class="number">0</span>)</span><br><span class="line">    pwnLoss = models.FloatField(default=<span class="number">0</span>)</span><br><span class="line">    checkLoss = models.FloatField(default=<span class="number">0</span>)</span><br><span class="line">    webip = models.TextField(default=<span class="string">"127.0.0.1"</span>)</span><br><span class="line">    pwnip = models.TextField(default=<span class="string">"127.0.0.1"</span>)</span><br><span class="line">    sumOfcheck = models.IntegerField(default=<span class="number">0</span>)</span><br><span class="line">    checkip = models.TextField(default=<span class="string">"0.0.0.0"</span>) <span class="comment">#被check题目的ip</span></span><br><span class="line">    tempScore = models.FloatField(default=<span class="number">0.0</span>)</span><br></pre></td></tr></table></figure>
+<p>但是队伍的名称和密码都保存在Web界面所管辖的数据库中，因此需要将我创建的队伍信息发送给刘师傅，他扩展与队伍相关的信息。</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># 我的队伍表</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">UserProfile</span><span class="params">(models.Model)</span>:</span></span><br><span class="line">    user = models.OneToOneField(User, on_delete=models.CASCADE)</span><br><span class="line">    question = models.ManyToManyField(<span class="string">"Question"</span>)</span><br><span class="line"></span><br><span class="line">    <span class="class"><span class="keyword">class</span> <span class="title">Meta</span>:</span></span><br><span class="line">        verbose_name = <span class="string">"队伍"</span>  <span class="comment"># 给模型起一个可读的名字</span></span><br><span class="line">        verbose_name_plural = <span class="string">"队伍"</span></span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">def</span> <span class="title">__str__</span><span class="params">(self)</span>:</span></span><br><span class="line">        <span class="keyword">return</span> self.user.username</span><br></pre></td></tr></table></figure>
+<p>将队伍信息分成两部分写，通过API通讯，这样的好处是在沟通清楚API后只需要把API需要的数据处理好发送到指定API即可，不需要关心刘师傅如何处理这些数据，减少了很多没有必要的沟通时间。</p>
+<h2 id="分数统计服务"><a href="#分数统计服务" class="headerlink" title="分数统计服务"></a>分数统计服务</h2><p>本以为这部分刘师傅会写的比较快，结果是比我慢了好几天才搞定，而且修改了好几次API。再写这种合作的平台时API一定要充分的考虑好，尽量不要修改。</p>
+<h2 id="安全部署"><a href="#安全部署" class="headerlink" title="安全部署"></a>安全部署</h2><p>首先要考虑到基本的安全问题，首先排除一些复杂的漏洞，XXE，SSRF一类的，因为平台没有这样的功能，其他剩下XSS，SQL注入，CSRF。得益于Django自带对于这些漏洞的防御，按照规范编写代码并不需要考虑更多。另外根据DJango的安全部署，关闭Debug模式，开启多个和安全相关的头部。</p>
+<p>接下来是平台安全，平台暂时没有内测，Django本身并不打算搭建在其他的Web容器中，而是独立运行。选手的登录密码会做的比较长，复杂性也会比较高。</p>
+<p>最后，考虑到选手在内网中做嗅探的可能，有两种解决方法，比赛环境的路由映射或者比赛平台HTTPS。最后选择了HTTPS。内网的HTTPS是可以做自签名证书的，但需要选手添加信任，不太优雅，于是在Let’s encrypt申请了免费的SSL证书。Let’s encrype申请指向内网的ip需要一个域名，并且通过dns认证（修改TXT为一个指定值来确保你是域名所有者）。</p>
+<h2 id="后记"><a href="#后记" class="headerlink" title="后记"></a>后记</h2><p>由于是尚未内测的初代版本，后期打算长期更新迭代，重构也是有可能的。现在心得并不多，如果后面发生一些比较糟心的事情，处理完再来补充:D</p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/09/20/CVE-2017-7525-jackson-rce主线流程分析/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/09/23/CVE-17485-jackson-rce主线流程分析/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2018/09/23/Syclover线下赛平台开发小记/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

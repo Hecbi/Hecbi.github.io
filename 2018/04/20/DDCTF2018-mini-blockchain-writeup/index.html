@@ -1,0 +1,547 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>DDCTF2018 mini blockchain writeup | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="mini blockchain居然出了一个区块链题目也是非常的厉害，新知识学起来。对区块链不是很懂，可能下面的描述存在误差，如果有问题还请大神指出。 DD自己的商店用的是“区块链”货币，并不是真正的区块链，因为链只保存在服务器的session中，不过这不影响我们做题。 来看一张交易模型 关于UTXO的详解看http://8btc.com/article-4381-1.html 区块链就是区块和链。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="DDCTF2018 mini blockchain writeup">
+<meta property="og:url" content="http://hebic.me/2018/04/20/DDCTF2018-mini-blockchain-writeup/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="mini blockchain居然出了一个区块链题目也是非常的厉害，新知识学起来。对区块链不是很懂，可能下面的描述存在误差，如果有问题还请大神指出。 DD自己的商店用的是“区块链”货币，并不是真正的区块链，因为链只保存在服务器的session中，不过这不影响我们做题。 来看一张交易模型 关于UTXO的详解看http://8btc.com/article-4381-1.html 区块链就是区块和链。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://8btc.com/data/attachment/portal/201702/03/140447qe7vo3vt7g22slev.jpg">
+<meta property="og:updated_time" content="2018-04-20T02:49:30.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="DDCTF2018 mini blockchain writeup">
+<meta name="twitter:description" content="mini blockchain居然出了一个区块链题目也是非常的厉害，新知识学起来。对区块链不是很懂，可能下面的描述存在误差，如果有问题还请大神指出。 DD自己的商店用的是“区块链”货币，并不是真正的区块链，因为链只保存在服务器的session中，不过这不影响我们做题。 来看一张交易模型 关于UTXO的详解看http://8btc.com/article-4381-1.html 区块链就是区块和链。">
+<meta name="twitter:image" content="http://8btc.com/data/attachment/portal/201702/03/140447qe7vo3vt7g22slev.jpg">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#mini-blockchain"><span class="toc-text">mini blockchain</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#双花攻击"><span class="toc-text">双花攻击</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#为何可以直接append？"><span class="toc-text">为何可以直接append？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如果可以任意append，为什么不直接给shop转200w？"><span class="toc-text">如果可以任意append，为什么不直接给shop转200w？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#51-attack和算力有什么关系？"><span class="toc-text">51% attack和算力有什么关系？</span></a></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-DDCTF2018-mini-blockchain-writeup" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">DDCTF2018 mini blockchain writeup</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.04.20</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2018/04/20/DDCTF2018-mini-blockchain-writeup/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h1 id="mini-blockchain"><a href="#mini-blockchain" class="headerlink" title="mini blockchain"></a>mini blockchain</h1><p>居然出了一个区块链题目也是非常的厉害，新知识学起来。对区块链不是很懂，可能下面的描述存在误差，如果有问题还请大神指出。</p>
+<p>DD自己的商店用的是“区块链”货币，并不是真正的区块链，因为链只保存在服务器的session中，不过这不影响我们做题。</p>
+<p>来看一张交易模型<img src="http://8btc.com/data/attachment/portal/201702/03/140447qe7vo3vt7g22slev.jpg" alt="img"></p>
+<p>关于UTXO的详解看<a href="http://8btc.com/article-4381-1.html" target="_blank" rel="noopener">http://8btc.com/article-4381-1.html</a></p>
+<p>区块链就是区块和链。在这道题目中，看上面的图片，一个方框就是一个区块（block）。一个区块包含了一次交易（tx），一个交易包含了交易的输入（input）和交易的输出（output），其中输出又称为UTXO。每一次交易的输入和输出必须相同，如果输入10块钱花了2块给便利店，那么2块输出给便利店，8块输出给自己。也可以把UTXO理解为余额，因为每次能花多少，都是要取决于之前的UTXO向自己输出了多少。</p>
+<p>这道题目的背景是银行在某天发行了100w个DDB（对应上图第一个方块），这时黑客出现了，他在第一个block后面append了一个区块，把银行的99w9999转给了自己，把1转给银行。这样银行就只剩下一块钱了，黑客还得意的喊：<code>second_block = create_block(genesis_block[&#39;hash&#39;], &#39;HAHA, I AM THE BANK NOW!&#39;, [transferred])</code>  题目的要求是获得两个钻石，获得钻石的方法是商店有100w元。一个钻石的价格是100w，就是说我们得有200w才可以得到两个钻石，可银行只发行了100w，该怎么办？</p>
+<h2 id="双花攻击"><a href="#双花攻击" class="headerlink" title="双花攻击"></a>双花攻击</h2><p>双花攻击是同一笔UTXO在不同交易中的花费，双花不会产生新的货币，只能把自己花出去的钱重新拿回来。</p>
+<p>这个攻击方法给了我灵感，实际上这道题就是使用双花攻击中的51% attack。51% attack指的是攻击者如果可以拥有超过全网50%的算力，就可以创造一条高度大于原始链的链，攻击者可以发送一个新的块到这条链上。（如果有对比特币进行51% attack成功的案例，最大的危害在于人们对比特币的信心受损导致的比特币大跌而不是51% attack本身带来的危害）</p>
+<p>如何进行51% attack攻击？在这道题中，就是创造一条超过原始链的长度。为了在后续讲解中方便，先写出题目给出的几个块，主链上块前有*</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">*块1（创世区块）：银行发行100w币</th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">*块2(1)：黑客转走99w9999，银行留1</td>
+</tr>
+<tr>
+<td style="text-align:left">*块3(1)：空块（什么都没操作）</td>
+</tr>
+</tbody>
+</table>
+<p>具体操作就是从块1之后append一个块，把银行的100w转到shop中</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">*块1（创世区块）：银行发行100w币</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">*块2(1)：黑客转走99w9999，银行留1</td>
+<td>块2(2)–shop转走100w</td>
+</tr>
+<tr>
+<td style="text-align:left">*块3(1)：空块（什么都没操作）</td>
+</tr>
+</tbody>
+</table>
+<p>（还可以随意转钱？就是有这种操作23333）</p>
+<p>下一步，在自己append的块后append一个空块</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">*块1（创世区块）：银行发行100w币</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">*块2(1)：黑客转走99w9999，银行留1</td>
+<td>块2(2)–shop转走100w</td>
+</tr>
+<tr>
+<td style="text-align:left">*块3(1)：空块（什么都不发生）</td>
+<td>块3(2)–空块（什么都不发生）</td>
+</tr>
+</tbody>
+</table>
+<p>再来一次同样的操作</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">*块1（创世区块）：银行发行100w币</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">块2(1)：黑客转走99w9999，银行留1</td>
+<td>*块2(2)–shop转走100w</td>
+</tr>
+<tr>
+<td style="text-align:left">块3(1)：空块（什么都没操作）</td>
+<td>*块3(2)–空块（什么都不发生）</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td>*块4(1)–空块（什么都不发生）</td>
+</tr>
+</tbody>
+</table>
+<p>此时最长的链为块1-块2(2)-块3(1)-块4(1)。这样，我们就构造了一个比题目给我们还要长的链，区块链这套逻辑会把最长的链当做主链，主链从块2(2)处分叉，块2(1)失效了，shop账户中多了100w，我们获得一个钻石。接下来系统在购买钻石的块3(2)块后添加一个块，转走商店中的100w到商店钱包。</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">*块1（创世区块）：银行发行100w币</th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">块2(1)：黑客转走99w9999，银行留1</td>
+<td>*块2(2)–shop转走100w</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td>*块3(2)–空块（什么都不发生）</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td>*块4(1)–空块（什么都不发生）</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td>*块5(1)–把100w转到shop_wallet_address</td>
+</tr>
+</tbody>
+</table>
+<p>那么另一个钻石该怎么获得呢？继续利用50% attack攻击，从块4(1)分叉，添加空块</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">*块1（创世区块）：银行发行100w币</th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">块2(1)：黑客转走99w9999，银行留1</td>
+<td>*块2(2)–shop转走100w</td>
+<td></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td>*块3(2)–空块（什么都不发生）</td>
+<td></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td>*块4(1)–空块（什么都不发生）</td>
+<td></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td>*块5(1)–把100w转到shop_wallet_address</td>
+<td>块5(2)–空块（什么都不发生）</td>
+</tr>
+</tbody>
+</table>
+<p>再append一个空块</p>
+<table>
+<thead>
+<tr>
+<th style="text-align:left">*块1（创世区块）：银行发行100w币</th>
+<th></th>
+<th></th>
+</tr>
+</thead>
+<tbody>
+<tr>
+<td style="text-align:left">块2(1)：黑客转走99w9999，银行留1</td>
+<td>*块2(2)–shop转走100w</td>
+<td></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td>*块3(2)–空块（什么都不发生）</td>
+<td></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td>*块4(1)–空块（什么都不发生）</td>
+<td></td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td>块5(1)–把100w转到shop_wallet_address</td>
+<td>*块5(2)–空块（什么都不发生）</td>
+</tr>
+<tr>
+<td style="text-align:left"></td>
+<td></td>
+<td>*块6(1)–空块（什么都不发生）</td>
+</tr>
+</tbody>
+</table>
+<p>主链变为块1-块2(2)-块3(1)-块4(1)-块5(2)-块6(1)，块5(1)失效，shop拥有100w，钻石+1，得到flag。</p>
+<h2 id="为何可以直接append？"><a href="#为何可以直接append？" class="headerlink" title="为何可以直接append？"></a>为何可以直接append？</h2><p>在这道题目中，给了一个append块的方法，可以将post请求当做块append到某个块后面，这个是一个正常的功能。在生成sign的时候没有将使用签名的交易hash计算进去，导致在验证的时候没有验证sign和交易hash的对应，所以只要有一个sign，就可以不断的利用这个sign append区块。</p>
+<h2 id="如果可以任意append，为什么不直接给shop转200w？"><a href="#如果可以任意append，为什么不直接给shop转200w？" class="headerlink" title="如果可以任意append，为什么不直接给shop转200w？"></a>如果可以任意append，为什么不直接给shop转200w？</h2><p>首先，所有的append都必须在创世block后。其次，系统会验证append块中的sign。还会验证prev值，是否为某个已存在的block的hash。（block的hash是将block的每个参数打包后进行hash）无法知道某个block的hash就无法在block后append一个block。最后，转出的钱，必须是之前的UTXO，题目中UTXO总量为100w，无法创造200w的UTXO。</p>
+<h2 id="51-attack和算力有什么关系？"><a href="#51-attack和算力有什么关系？" class="headerlink" title="51% attack和算力有什么关系？"></a>51% attack和算力有什么关系？</h2><p>append的块除了以上要求，还有一个复杂性要求。也就是工作量证明（<a href="https://baike.baidu.com/item/%E5%B7%A5%E4%BD%9C%E9%87%8F%E8%AF%81%E6%98%8E/22448498?fr=aladdin）。任意添加一个块的要求是" target="_blank" rel="noopener">https://baike.baidu.com/item/%E5%B7%A5%E4%BD%9C%E9%87%8F%E8%AF%81%E6%98%8E/22448498?fr=aladdin）。任意添加一个块的要求是</a></p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line">DIFFICULTY = int(<span class="string">'00000'</span> + <span class="string">'f'</span> * <span class="number">59</span>, <span class="number">16</span>)</span><br><span class="line">......</span><br><span class="line"><span class="keyword">if</span> block_hash &gt; difficulty: <span class="keyword">raise</span> Exception(<span class="string">'Please provide a valid Proof-of-Work'</span>)</span><br></pre></td></tr></table></figure>
+<p>block的hash要小于系统定义的difficulty。为了使得可以控制hash的大小，一个block中还有一个可以随意定义的nonce，我们可以控制nonce来控制block_hash达到目的。为了满足复杂度要求，必须穷举nonce。init()中的几个块可以使用有语义的nonce是因为在那个阶段DIFFICULTY要求极低。</p>
+<p>如果世界上有100个用户在使用这个系统，100个用户都在计算nonce以append自己的block。如果其中一个人计算nonce的速度要超过其余99个的速度，那么他添加新块的速度就会超过其他99个人添加新块的速度，他就可以在随意的一个块开始添加自己的块，使得自己构造的链长度大于其余99个构造的链，成为主链，达成51%攻击。这道题没人和我们比算力，生成一个比最长链长度大一的链即可。</p>
+<p>一个block结构是怎样的？块2(1)</p>
+<figure class="highlight"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line">&#123;</span><br><span class="line">'nonce': 'HAHA, I AM THE BANK NOW!', </span><br><span class="line">'prev': 'dd04faf20c550cf63ae07504884e1fb673cfefaaac2979dde1ae3cbf95961569', </span><br><span class="line">'hash': '5217b7fa9c1e2296e66202997df0a51b20e58fe921011069535a62cd53518e55', </span><br><span class="line">'transactions': [&#123;</span><br><span class="line">	'input': ['9d65e5db-8671-4323-b279-af56963f2565'], </span><br><span class="line">	'output': [&#123;</span><br><span class="line">		'amount': 999999, </span><br><span class="line">		'hash': </span><br><span class="line">		'da32c8155ebbec8df888653d4d243698e29c4ea43cc0fa1bff14649e8511416b', </span><br><span class="line">		'id': '9dcb9e47-5816-4451-b99e-eb6d729f64b7', </span><br><span class="line">		'addr': 'b2a6484625db7305ea7bb1c8a484832ec32686c0f3a3dac5cfe63779ede94494d841f8117fe1dd55c57e23aa61953391'</span><br><span class="line">		&#125;, </span><br><span class="line">		&#123;</span><br><span class="line">		'amount': 1, </span><br><span class="line">		'hash': '19fa5198bc172d6525976b7f0fb5f0647b96ab6b55bd4eb9033ab158faebb0ad', </span><br><span class="line">		'id': '592e27c6-b111-40a7-8b2d-ccefa333e616', </span><br><span class="line">		'addr': '99a13a3a21051c8f93c5a87f7f92151b4acfaf01f2e596696e8922e3801278470592cdbc8920f289a1829f726c43a1e9'</span><br><span class="line">		&#125;],</span><br><span class="line">		 </span><br><span class="line">		'hash': '5815cc2ccf6327396ce5490c39e7c6381f15250fa0ab043eae8096d1a1c44704', </span><br><span class="line">		'signature': ['9455298609f042b631f99cb33f3f683f6b3361962df5f1c6f698e03b23d72c7ea42c939999913424e4c424f6b7024514']</span><br><span class="line">		&#125;</span><br><span class="line">]&#125;</span><br></pre></td></tr></table></figure>
+<p>参数解释，括号内为生成函数</p>
+<p>nonce：自定义字符串</p>
+<p>prev：上一个块的hash</p>
+<p>hash：本个块的hash（hashhash，hash_reducer，hash_block）</p>
+<p>transactions：交易（tx）</p>
+<p>​    input：之前utxo的id</p>
+<p>​    output：UTXO</p>
+<p>​        amount：数量</p>
+<p>​        hash：UTXO的hash（hash，hash_reducer，hash_utxo）</p>
+<p>​        id：这个UTXO的id</p>
+<p>​        addr：目标地址</p>
+<p>​    hash：交易的hash（hash，hash_reducer，hash_tx）</p>
+<p>​    signature：交易签名（sign_input_utxo）</p>
+<p>其余的函数：</p>
+<p>addr_to_pubkey：检查地址有效性</p>
+<p>pubkey_to_address：生成钱包地址</p>
+<p>gen_addr_key_pair：生成钱包地址</p>
+<p>create_output_utxo：创建一个utxo</p>
+<p>create_tx：创建一个tx</p>
+<p>create_block：创建一个block</p>
+<p>find_blockchain_tail：查询最后一个block</p>
+<p>calculate_utxo：得到所有utxo</p>
+<p>calculate_balance：计算钱包的余额</p>
+<p>verify_utxo_signature：验证utxo签名</p>
+<p>append_block：添加块</p>
+<p>init：初始化函数</p>
+<p>get_balance_of_all：得到所有block，所有地址和utxo</p>
+<p>homepage：web主页</p>
+<p>getFlag：flag获取页面</p>
+<p>EXP: 重命名源代码为btc.py</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br></pre></td><td class="code"><pre><span class="line"><span class="comment"># -*- encoding: utf-8 -*-</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">import</span> btc, rsa, uuid, json, copy</span><br><span class="line"><span class="comment">#创世块的hash</span></span><br><span class="line">genies_hash = <span class="string">"92875ca628cd0890020f6a74f3011b611db814f30300f729f20b5a88c49e3e44"</span></span><br><span class="line"><span class="comment">#黑客转账999999,所用的input和签名</span></span><br><span class="line">input,signature = (<span class="string">"9018b356-cb1d-44c9-ab4e-bf15a8b2f95c"</span>,<span class="string">"161ae7eac89f71d50d1019d21288dce23cae6cbb587998df9010e3ff3c80ee8e4c06bd70555604be85ca0869136b3966"</span>)</span><br><span class="line"><span class="comment">#商店地址</span></span><br><span class="line">shop_address = <span class="string">"b81ff6d961082076f3801190a731958aec88053e8191258b0ad9399eeecd8306924d2d2a047b5ec1ed8332bf7a53e735"</span></span><br><span class="line">txout_id = str(uuid.uuid4())</span><br><span class="line"></span><br><span class="line"><span class="comment">#工作量证明</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">pow</span><span class="params">(b, difficulty, msg=<span class="string">""</span>)</span>:</span></span><br><span class="line">    nonce = <span class="number">0</span></span><br><span class="line">    <span class="keyword">while</span> nonce&lt;(<span class="number">2</span>**<span class="number">32</span>):</span><br><span class="line">        b[<span class="string">'nonce'</span>] = msg+str(nonce)</span><br><span class="line">        b[<span class="string">'hash'</span>] = btc.hash_block(b)</span><br><span class="line">        block_hash = int(b[<span class="string">'hash'</span>], <span class="number">16</span>)</span><br><span class="line">        <span class="keyword">if</span> block_hash &lt; difficulty:</span><br><span class="line">            <span class="keyword">return</span> b</span><br><span class="line">        nonce+=<span class="number">1</span>   </span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">myprint</span><span class="params">(b)</span>:</span></span><br><span class="line">    print(json.dumps(b))</span><br><span class="line">    print(len(json.dumps(b)))</span><br><span class="line"></span><br><span class="line"><span class="comment">#构造一个空块</span></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">empty_block</span><span class="params">(msg, prevHash)</span>:</span></span><br><span class="line">    b=&#123;&#125;</span><br><span class="line">    b[<span class="string">"prev"</span>] = prevHash</span><br><span class="line">    b[<span class="string">"transactions"</span>] = []</span><br><span class="line">    b = pow(b, btc.DIFFICULTY, msg)</span><br><span class="line">    <span class="keyword">return</span> b</span><br><span class="line"></span><br><span class="line"><span class="comment">#从创世块开始分叉，给商店转1000000</span></span><br><span class="line">block1 = &#123;&#125;</span><br><span class="line">block1[<span class="string">"prev"</span>] = genies_hash</span><br><span class="line">tx = &#123;<span class="string">"input"</span>:[input],<span class="string">"output"</span>:[&#123;<span class="string">"amount"</span>:<span class="number">1000000</span>, <span class="string">'id'</span>:txout_id,<span class="string">'addr'</span>:shop_address&#125;],<span class="string">'signature'</span>:[signature]&#125;</span><br><span class="line">tx[<span class="string">"output"</span>][<span class="number">0</span>][<span class="string">"hash"</span>] = btc.hash_utxo(tx[<span class="string">"output"</span>][<span class="number">0</span>])</span><br><span class="line">tx[<span class="string">'hash'</span>] = btc.hash_tx(tx)</span><br><span class="line">block1[<span class="string">"transactions"</span>] = [tx]</span><br><span class="line">block1 = pow(block1, btc.DIFFICULTY)</span><br><span class="line">myprint(block1)</span><br><span class="line"></span><br><span class="line"><span class="comment">#构造空块增加分叉链长度，使分叉链最长，因为max的结果不唯一，少则一次多则两次</span></span><br><span class="line">block2 = empty_block(<span class="string">"myempty1"</span>, block1[<span class="string">"hash"</span>])</span><br><span class="line">myprint(block2)</span><br><span class="line">block3 = empty_block(<span class="string">"myempty2"</span>, block2[<span class="string">"hash"</span>])</span><br><span class="line">myprint(block3)</span><br><span class="line"></span><br><span class="line"><span class="comment">#余额更新成功,系统自动添加块，转走商店钱，钻石+１</span></span><br><span class="line"></span><br><span class="line"><span class="comment">#从自己的块，即系统转走钱之前的那个块再次分叉，添加空块</span></span><br><span class="line">block4 = empty_block(<span class="string">"myempty3"</span>, block3[<span class="string">"hash"</span>])</span><br><span class="line">myprint(block4)</span><br><span class="line">block5 = empty_block(<span class="string">"myempty4"</span>, block4[<span class="string">"hash"</span>])</span><br><span class="line">myprint(block5)</span><br><span class="line"><span class="comment">#新的分叉链最长，余额更新成功，钻石+１</span></span><br></pre></td></tr></table></figure>
+<p>生成出的四个块按顺序提交，再访问/flag就可以得到flag</p>
+<p>最后感谢ACM大佬@M3r0dach师傅的指导，在做这道题的过程中给予了很多帮助。大佬的github：<a href="https://github.com/M3r0dach/gobtc" target="_blank" rel="noopener">https://github.com/M3r0dach/gobtc</a></p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/11/13/hctf2017-web-writeup/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/04/20/DDCTF2018-专属链接-writeup/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2018/04/20/DDCTF2018-mini-blockchain-writeup/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,465 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>struts2系列——XWork | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="请求-响应 实现模型 参数-返回值 模式  Public Return someMethod(Param param1, Param param2){}  Return：返回值：处理相应结果 someMethod：方法名：请求-响应处理载体 (Param param1, Param     param2)：方法参数：请求内容的映射  对象的方法称为请求-响应模式在Java世界中的一种直观抽象。这种">
+<meta property="og:type" content="article">
+<meta property="og:title" content="struts2系列——XWork">
+<meta property="og:url" content="http://hebic.me/2018/05/06/struts2系列——XWork/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="请求-响应 实现模型 参数-返回值 模式  Public Return someMethod(Param param1, Param param2){}  Return：返回值：处理相应结果 someMethod：方法名：请求-响应处理载体 (Param param1, Param     param2)：方法参数：请求内容的映射  对象的方法称为请求-响应模式在Java世界中的一种直观抽象。这种">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://hebic.me/2018/05/06/struts2系列——XWork/1.png">
+<meta property="og:updated_time" content="2018-05-06T09:26:12.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="struts2系列——XWork">
+<meta name="twitter:description" content="请求-响应 实现模型 参数-返回值 模式  Public Return someMethod(Param param1, Param param2){}  Return：返回值：处理相应结果 someMethod：方法名：请求-响应处理载体 (Param param1, Param     param2)：方法参数：请求内容的映射  对象的方法称为请求-响应模式在Java世界中的一种直观抽象。这种">
+<meta name="twitter:image" content="http://hebic.me/2018/05/06/struts2系列——XWork/1.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#请求-响应-实现模型"><span class="toc-text">请求-响应 实现模型</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#XWork宏观视图"><span class="toc-text">XWork宏观视图</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#数据流体系"><span class="toc-text">数据流体系</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#控制流体系"><span class="toc-text">控制流体系</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#事件处理节点和事件驱动元素"><span class="toc-text">事件处理节点和事件驱动元素</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#核心事件处理节点和辅助事件驱动节点"><span class="toc-text">核心事件处理节点和辅助事件驱动节点</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#数据流体系-1"><span class="toc-text">数据流体系</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#ActionContext"><span class="toc-text">ActionContext</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#数据储存"><span class="toc-text">数据储存</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#数据共享空间"><span class="toc-text">数据共享空间</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#数据储存的内容"><span class="toc-text">数据储存的内容</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ValueStack"><span class="toc-text">ValueStack</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#基本概念"><span class="toc-text">基本概念</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#数据结构"><span class="toc-text">数据结构</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#计算功能"><span class="toc-text">计算功能</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#ValueStack对OGNL计算规则的特点"><span class="toc-text">ValueStack对OGNL计算规则的特点</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#栈顶元素和子栈"><span class="toc-text">栈顶元素和子栈</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#深入ValueStack实现"><span class="toc-text">深入ValueStack实现</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#CompoundRoot"><span class="toc-text">CompoundRoot</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#CompoundRootAccessor"><span class="toc-text">CompoundRootAccessor</span></a></li></ol></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#控制流体系-1"><span class="toc-text">控制流体系</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Action"><span class="toc-text">Action</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Interceptor"><span class="toc-text">Interceptor</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#基本概念-1"><span class="toc-text">基本概念</span></a></li><li class="toc-item toc-level-4"><a class="toc-link" href="#Interceptor的定义"><span class="toc-text">Interceptor的定义</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ActionInvocation"><span class="toc-text">ActionInvocation</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#ActionInvocation调度分析"><span class="toc-text">ActionInvocation调度分析</span></a></li></ol></li><li class="toc-item toc-level-3"><a class="toc-link" href="#ActionProxy"><span class="toc-text">ActionProxy</span></a><ol class="toc-child"><li class="toc-item toc-level-4"><a class="toc-link" href="#定义"><span class="toc-text">定义</span></a></li></ol></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-struts2系列——XWork" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">struts2系列——XWork</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.05.06</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2018/05/06/struts2系列——XWork/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h2 id="请求-响应-实现模型"><a href="#请求-响应-实现模型" class="headerlink" title="请求-响应 实现模型"></a>请求-响应 实现模型</h2><ul>
+<li>参数-返回值 模式</li>
+</ul>
+<p>Public Return someMethod(Param param1, Param param2){}</p>
+<ul>
+<li>Return：返回值：处理相应结果</li>
+<li>someMethod：方法名：请求-响应处理载体</li>
+<li>(Param param1, Param     param2)：方法参数：请求内容的映射</li>
+</ul>
+<p>对象的方法称为请求-响应模式在Java世界中的一种直观抽象。这种直观并符合简单逻辑思维的抽象方法，应该说完全符合“简单是美”的最佳实践。</p>
+<ul>
+<li>参数-参数 模式</li>
+</ul>
+<p>Servlet标准就是参数-参数模式，因此这种模式也被称为Servlet模式。doGet(HttpServletRequest,HttpServletResponse) : void</p>
+<p>这种模式和参数-返回值模式不同之处在于，请求和响应都在参数中，而没有返回值。这种模式是最为基础的请求-响应的实现机制，也是底层规范不得不采用的实现机制，也是实现完整请求-响应机制的唯一请求。在大多数web开发框架中，已经不会看到Servlet模式，因为所有的框架都会基于这种模式为基础，将具体实现转换到其他的实现模式。</p>
+<ul>
+<li>POJO 模式</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br></pre></td><td class="code"><pre><span class="line">Public <span class="class"><span class="keyword">class</span> <span class="title">UserController</span></span>&#123;</span><br><span class="line"></span><br><span class="line">Private String userName;</span><br><span class="line"></span><br><span class="line">Private String password;</span><br><span class="line"></span><br><span class="line"><span class="function">Public String <span class="title">Login</span><span class="params">()</span></span>&#123;</span><br><span class="line"></span><br><span class="line">Return <span class="string">"success"</span>;</span><br><span class="line"></span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>在POJO模式中请求参数和返回值以属性的方式展现，处理请求使用内部方法。这种模式和上面两种请求方法的最大不同在：进行请求响应的处理类自身是一个有状态的对象。                             </p>
+<h2 id="XWork宏观视图"><a href="#XWork宏观视图" class="headerlink" title="XWork宏观视图"></a>XWork宏观视图</h2><p><img src="/2018/05/06/struts2系列——XWork/1.png" alt="a">                                                    </p>
+<h2 id="数据流体系"><a href="#数据流体系" class="headerlink" title="数据流体系"></a>数据流体系</h2><p>数据流体系在上图中是横向的两个虚线框：ActionContext和ValueStack，他们之间是包含关系，ValueStack是ActionContext的一个组成部分。为何是包含关系？ActionContext提供了数据环境，他表现出来的空间概念，恰好称为数据载体进行储存的天然基石。ValueStack是一个具备表达式引擎计算能力的数据结构，表达式引擎是为了解决数据访问和数据传输之间的困境。那么一个提供数据环境，一个提供为静态环境添加动态计算功能，两者分别是数据和流，因此两者密不可分。</p>
+<h2 id="控制流体系"><a href="#控制流体系" class="headerlink" title="控制流体系"></a>控制流体系</h2><p>在上图中是实线的部分。在讨论控制流体系时，关注两个关系：事件处理节点和事件驱动元素之间的关系、核心事件处理节点和辅助事件处理节点。</p>
+<h3 id="事件处理节点和事件驱动元素"><a href="#事件处理节点和事件驱动元素" class="headerlink" title="事件处理节点和事件驱动元素"></a>事件处理节点和事件驱动元素</h3><p>事件处理节点由Action/Interceptor/Result组成，事件处理驱动元素由ActionProxy和ActionInvocation组成。在XWork控制流中，事件处理驱动元素对事件处理节点元素形成调用关系。ActionInvocation是对事件处理节点的执行调度，XWork控制流体系的总调度。</p>
+<h3 id="核心事件处理节点和辅助事件驱动节点"><a href="#核心事件处理节点和辅助事件驱动节点" class="headerlink" title="核心事件处理节点和辅助事件驱动节点"></a>核心事件处理节点和辅助事件驱动节点</h3><p>核心事件处理节点和辅助事件处理节点就是Action和Interceptor。他们在上图中是包裹关系，一个Interceptor套着另一个Interceptor，一层接着一层，把Action包裹在最里面。这是一个“栈”结构。在这个栈结构，Action在最底层，Interceptor在外面。根据先进后出的特性，试图把Action对象拿出来时，必须把位于Action上所有Interceptor依次取出来执行。每个Interceptor除了需要完成自身逻辑以外，还需要指定下一步的执行对象。</p>
+<p>ActionInvocation在对事件处理节点调度的时候，是将Action和Interceptor捆绑在一起调度的。</p>
+<h2 id="数据流体系-1"><a href="#数据流体系-1" class="headerlink" title="数据流体系"></a>数据流体系</h2><h3 id="ActionContext"><a href="#ActionContext" class="headerlink" title="ActionContext"></a>ActionContext</h3><p>ActionContext作为数据环境，有两大职责：数据储存和数据共享</p>
+<h4 id="数据储存"><a href="#数据储存" class="headerlink" title="数据储存"></a>数据储存</h4><p>ActionContext.java</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br><span class="line">101</span><br><span class="line">102</span><br><span class="line">103</span><br><span class="line">104</span><br><span class="line">105</span><br><span class="line">106</span><br><span class="line">107</span><br><span class="line">108</span><br><span class="line">109</span><br><span class="line">110</span><br><span class="line">111</span><br><span class="line">112</span><br><span class="line">113</span><br><span class="line">114</span><br><span class="line">115</span><br><span class="line">116</span><br><span class="line">117</span><br><span class="line">118</span><br><span class="line">119</span><br><span class="line">120</span><br><span class="line">121</span><br><span class="line">122</span><br><span class="line">123</span><br><span class="line">124</span><br><span class="line">125</span><br><span class="line">126</span><br><span class="line">127</span><br><span class="line">128</span><br><span class="line">129</span><br><span class="line">130</span><br><span class="line">131</span><br><span class="line">132</span><br><span class="line">133</span><br><span class="line">134</span><br><span class="line">135</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">ActionContext</span> <span class="keyword">implements</span> <span class="title">Serializable</span> </span>&#123;</span><br><span class="line">    <span class="keyword">static</span> ThreadLocal actionContext = <span class="keyword">new</span> ThreadLocal();</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ACTION_NAME = <span class="string">"com.opensymphony.xwork2.ActionContext.name"</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String VALUE_STACK = <span class="string">"com.opensymphony.xwork2.util.ValueStack.ValueStack"</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String SESSION = <span class="string">"com.opensymphony.xwork2.ActionContext.session"</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String APPLICATION = <span class="string">"com.opensymphony.xwork2.ActionContext.application"</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String PARAMETERS = <span class="string">"com.opensymphony.xwork2.ActionContext.parameters"</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String LOCALE = <span class="string">"com.opensymphony.xwork2.ActionContext.locale"</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String TYPE_CONVERTER = <span class="string">"com.opensymphony.xwork2.ActionContext.typeConverter"</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String ACTION_INVOCATION = <span class="string">"com.opensymphony.xwork2.ActionContext.actionInvocation"</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String CONVERSION_ERRORS = <span class="string">"com.opensymphony.xwork2.ActionContext.conversionErrors"</span>;</span><br><span class="line">    <span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">final</span> String CONTAINER = <span class="string">"com.opensymphony.xwork2.ActionContext.container"</span>;</span><br><span class="line">    Map&lt;String, Object&gt; context;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">ActionContext</span><span class="params">(Map&lt;String, Object&gt; context)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.context = context;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setActionInvocation</span><span class="params">(ActionInvocation actionInvocation)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.put(<span class="string">"com.opensymphony.xwork2.ActionContext.actionInvocation"</span>, actionInvocation);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ActionInvocation <span class="title">getActionInvocation</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (ActionInvocation)<span class="keyword">this</span>.get(<span class="string">"com.opensymphony.xwork2.ActionContext.actionInvocation"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setApplication</span><span class="params">(Map&lt;String, Object&gt; application)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.put(<span class="string">"com.opensymphony.xwork2.ActionContext.application"</span>, application);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, Object&gt; <span class="title">getApplication</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (Map)<span class="keyword">this</span>.get(<span class="string">"com.opensymphony.xwork2.ActionContext.application"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">setContext</span><span class="params">(ActionContext context)</span> </span>&#123;</span><br><span class="line">        actionContext.set(context);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> ActionContext <span class="title">getContext</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (ActionContext)actionContext.get();</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContextMap</span><span class="params">(Map&lt;String, Object&gt; contextMap)</span> </span>&#123;</span><br><span class="line">        getContext().context = contextMap;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, Object&gt; <span class="title">getContextMap</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.context;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setConversionErrors</span><span class="params">(Map&lt;String, Object&gt; conversionErrors)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.put(<span class="string">"com.opensymphony.xwork2.ActionContext.conversionErrors"</span>, conversionErrors);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, Object&gt; <span class="title">getConversionErrors</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Map&lt;String, Object&gt; errors = (Map)<span class="keyword">this</span>.get(<span class="string">"com.opensymphony.xwork2.ActionContext.conversionErrors"</span>);</span><br><span class="line">        <span class="keyword">if</span> (errors == <span class="keyword">null</span>) &#123;</span><br><span class="line">            errors = <span class="keyword">new</span> HashMap();</span><br><span class="line">            <span class="keyword">this</span>.setConversionErrors((Map)errors);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> (Map)errors;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setLocale</span><span class="params">(Locale locale)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.put(<span class="string">"com.opensymphony.xwork2.ActionContext.locale"</span>, locale);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Locale <span class="title">getLocale</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        Locale locale = (Locale)<span class="keyword">this</span>.get(<span class="string">"com.opensymphony.xwork2.ActionContext.locale"</span>);</span><br><span class="line">        <span class="keyword">if</span> (locale == <span class="keyword">null</span>) &#123;</span><br><span class="line">            locale = Locale.getDefault();</span><br><span class="line">            <span class="keyword">this</span>.setLocale(locale);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">return</span> locale;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setName</span><span class="params">(String name)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.put(<span class="string">"com.opensymphony.xwork2.ActionContext.name"</span>, name);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> String <span class="title">getName</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (String)<span class="keyword">this</span>.get(<span class="string">"com.opensymphony.xwork2.ActionContext.name"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setParameters</span><span class="params">(Map&lt;String, Object&gt; parameters)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.put(<span class="string">"com.opensymphony.xwork2.ActionContext.parameters"</span>, parameters);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, Object&gt; <span class="title">getParameters</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (Map)<span class="keyword">this</span>.get(<span class="string">"com.opensymphony.xwork2.ActionContext.parameters"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setSession</span><span class="params">(Map&lt;String, Object&gt; session)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.put(<span class="string">"com.opensymphony.xwork2.ActionContext.session"</span>, session);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Map&lt;String, Object&gt; <span class="title">getSession</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (Map)<span class="keyword">this</span>.get(<span class="string">"com.opensymphony.xwork2.ActionContext.session"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setValueStack</span><span class="params">(ValueStack stack)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.put(<span class="string">"com.opensymphony.xwork2.util.ValueStack.ValueStack"</span>, stack);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ValueStack <span class="title">getValueStack</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (ValueStack)<span class="keyword">this</span>.get(<span class="string">"com.opensymphony.xwork2.util.ValueStack.ValueStack"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContainer</span><span class="params">(Container cont)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.put(<span class="string">"com.opensymphony.xwork2.ActionContext.container"</span>, cont);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Container <span class="title">getContainer</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> (Container)<span class="keyword">this</span>.get(<span class="string">"com.opensymphony.xwork2.ActionContext.container"</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">public</span> &lt;T&gt; <span class="function">T <span class="title">getInstance</span><span class="params">(Class&lt;T&gt; type)</span> </span>&#123;</span><br><span class="line">        Container cont = <span class="keyword">this</span>.getContainer();</span><br><span class="line">        <span class="keyword">if</span> (cont != <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">return</span> cont.getInstance(type);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> XWorkException(<span class="string">"Cannot find an initialized container for this request."</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">get</span><span class="params">(String key)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.context.get(key);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">put</span><span class="params">(String key, Object value)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.context.put(key, value);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ActionContext真正用来储存的空间是一个Map类型的变量context，ActionContext将所有的对象用键值的方法储存在context中，另外还提供了存取这些对象的方式。</p>
+<h4 id="数据共享空间"><a href="#数据共享空间" class="headerlink" title="数据共享空间"></a>数据共享空间</h4><p>数据共享就会导致外界获得了一个相同的储存空间的访问权，必然造成线程安全问题。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br></pre></td><td class="code"><pre><span class="line">staticThreadLocal actionContext = <span class="keyword">new</span> ThreadLocal();</span><br><span class="line"><span class="function"><span class="keyword">public</span> staticvoid <span class="title">setContext</span><span class="params">(ActionContext context)</span> </span>&#123;</span><br><span class="line">    actionContext.set(context);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<h4 id="数据储存的内容"><a href="#数据储存的内容" class="headerlink" title="数据储存的内容"></a>数据储存的内容</h4><p>从ActionContext接口可以看出ActionContext究竟在初始化的时候放了什么样的对象进去。</p>
+<p>对XWork框架对象的访问：getContainer/getValueStack/getActionInvocation</p>
+<p>对数据对象的访问：getSession/getApplication/getParameters</p>
+<p>ActionContext包含的访问接口是包罗万象的，针对这些数据对象的访问接口返回值均为map，意思是说存放于其中的数据与Web容器无关。看似不合理，却反映出ActionContext设计的严谨。ActionContext是XWork中定义的元素，而XWork是一个脱离web容器的框架，因此ActionContext若引入web对象，那就与XWork解耦的基本设计思想背道相驰。</p>
+<p>XWork这个封装考虑了两个方面：</p>
+<ul>
+<li>封装后的数据保证了线程安全</li>
+<li>所有储存对象为Map，可以统一数据访问</li>
+</ul>
+<p>ActionContext的数据要被外部访问，因此在设计上也考虑到了与web容器进行交互的可能。提供了一个与Web容器打交道的方案，XWork在ActionContext的基础上扩展了一个ServletActionContext子类，并在其中封装了与原生Web容器交互的接口。ServletActionContext.java</p>
+<h3 id="ValueStack"><a href="#ValueStack" class="headerlink" title="ValueStack"></a>ValueStack</h3><h4 id="基本概念"><a href="#基本概念" class="headerlink" title="基本概念"></a>基本概念</h4><p>是XWork对OGNL的扩展</p>
+<h4 id="数据结构"><a href="#数据结构" class="headerlink" title="数据结构"></a>数据结构</h4><p>是一个栈结构，ValueStack.java中可以看出，ValueStack是一个基本的栈结构。具有下面两个特点</p>
+<ul>
+<li>可以存放多个对象</li>
+<li>先进后出</li>
+</ul>
+<p>ValueStack的实现类在OgnlValueStack中</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OgnlValueStack</span> <span class="keyword">implements</span> <span class="title">Serializable</span>, <span class="title">ValueStack</span>, <span class="title">ClearableValueStack</span>, <span class="title">MemberAccessValueStack</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> <span class="keyword">long</span> serialVersionUID = <span class="number">370737852934925530L</span>;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Logger LOG = LoggerFactory.getLogger(OgnlValueStack.class);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> devMode;</span><br><span class="line">    CompoundRoot root;</span><br><span class="line">    <span class="keyword">transient</span> Map&lt;String, Object&gt; context;</span><br><span class="line">    Class defaultType;</span><br><span class="line">    Map&lt;Object, Object&gt; overrides;</span><br><span class="line">    <span class="keyword">transient</span> OgnlUtil ognlUtil;</span><br><span class="line">    <span class="keyword">transient</span> SecurityMemberAccess securityMemberAccess;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> String MAP_IDENTIFIER_KEY = <span class="string">"com.opensymphony.xwork2.util.OgnlValueStack.MAP_IDENTIFIER_KEY"</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">link</span><span class="params">(Map&lt;String, Object&gt; context, Class clazz, String name)</span> </span>&#123;</span><br><span class="line">        context.put(<span class="string">"__link"</span>, <span class="keyword">new</span> Object[]&#123;clazz, name&#125;);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="title">OgnlValueStack</span><span class="params">(XWorkConverter xworkConverter, CompoundRootAccessor accessor, TextProvider prov, <span class="keyword">boolean</span> allowStaticAccess)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.setRoot(xworkConverter, accessor, <span class="keyword">new</span> CompoundRoot(), allowStaticAccess);</span><br><span class="line">        <span class="keyword">this</span>.push(prov);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="title">OgnlValueStack</span><span class="params">(ValueStack vs, XWorkConverter xworkConverter, CompoundRootAccessor accessor, <span class="keyword">boolean</span> allowStaticAccess)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.setRoot(xworkConverter, accessor, <span class="keyword">new</span> CompoundRoot(vs.getRoot()), allowStaticAccess);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Inject</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setOgnlUtil</span><span class="params">(OgnlUtil ognlUtil)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.ognlUtil = ognlUtil;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">protected</span> <span class="keyword">void</span> <span class="title">setRoot</span><span class="params">(XWorkConverter xworkConverter, CompoundRootAccessor accessor, CompoundRoot compoundRoot, <span class="keyword">boolean</span> allowStaticMethodAccess)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.root = compoundRoot;</span><br><span class="line">        <span class="keyword">this</span>.securityMemberAccess = <span class="keyword">new</span> SecurityMemberAccess(allowStaticMethodAccess);</span><br><span class="line">        <span class="keyword">this</span>.context = Ognl.createDefaultContext(<span class="keyword">this</span>.root, accessor, <span class="keyword">new</span> OgnlTypeConverterWrapper(xworkConverter), <span class="keyword">this</span>.securityMemberAccess);</span><br><span class="line">        <span class="keyword">this</span>.context.put(<span class="string">"com.opensymphony.xwork2.util.ValueStack.ValueStack"</span>, <span class="keyword">this</span>);</span><br><span class="line">        Ognl.setClassResolver(<span class="keyword">this</span>.context, accessor);</span><br><span class="line">        ((OgnlContext)<span class="keyword">this</span>.context).setTraceEvaluations(<span class="keyword">false</span>);</span><br><span class="line">        ((OgnlContext)<span class="keyword">this</span>.context).setKeepLastEvaluation(<span class="keyword">false</span>);</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>在内部真正起作用的是CompoundRoot的数据结构，他继承了ArrayList。ArrayList是一个链表结构，只要通过对ArrayList中元素的相关操作，就可以实现“先进后出”的效果。</p>
+<h4 id="计算功能"><a href="#计算功能" class="headerlink" title="计算功能"></a>计算功能</h4><p>上面是ValueStack作为Stack的数据结构，下面来看一看ValueStack的Value部分。</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> Object <span class="title">findValue</span><span class="params">(String expr)</span></span></span><br><span class="line"><span class="function">publicvoid <span class="title">setValue</span><span class="params">(String expr, Object value, <span class="keyword">boolean</span> throwExceptionOnFailure)</span></span></span><br></pre></td></tr></table></figure>
+<p>可以看出ValueStack也可以计算表达式。因此ValueStack是一个栈的数据结构，同时他拥有表达式引擎计算能力。</p>
+<p>因此ValueStack是：</p>
+<ul>
+<li>XWork进行OGNL计算的场所</li>
+<li>XWork进行数据访问的基础</li>
+</ul>
+<h4 id="ValueStack对OGNL计算规则的特点"><a href="#ValueStack对OGNL计算规则的特点" class="headerlink" title="ValueStack对OGNL计算规则的特点"></a>ValueStack对OGNL计算规则的特点</h4><p>OGNL在进行表达式计算时的基本逻辑是：从栈顶端开始对栈内每个元素进行表达式匹配运算，并返回第一个成功匹配的结果。因此ValueStack支持多个Root对象的OGNL操作的本质是栈内元素遍历。我们不关心ValueStack的元素顺序，因为OGNL表达式在ValueStack中能够返回多个值的可能性不大。</p>
+<h4 id="栈顶元素和子栈"><a href="#栈顶元素和子栈" class="headerlink" title="栈顶元素和子栈"></a>栈顶元素和子栈</h4><p>我们知道ValueStack在内部维护的栈是一个ArrayList，因此可以通过数组下表访问到元素。</p>
+<p>栈顶：数组下表为0的元素，也是最后一个被压入栈的元素，ValueStack为他定义了一个访问关键字：top</p>
+<p>子栈：数组下表为1，2这样的元素。</p>
+<p>ValueStack使用[1]~[n]表示所有子栈</p>
+<p>子栈的特点：</p>
+<ul>
+<li>一个大小为N的ValueStack，除了自身外，有N-1个子栈</li>
+<li>每个子栈自身也是一个ValueStack，</li>
+<li>相当于递归数据结构</li>
+</ul>
+<h3 id="深入ValueStack实现"><a href="#深入ValueStack实现" class="headerlink" title="深入ValueStack实现"></a>深入ValueStack实现</h3><h4 id="CompoundRoot"><a href="#CompoundRoot" class="headerlink" title="CompoundRoot"></a>CompoundRoot</h4><p>CompoundRoot是ValueStack核心数据结构。他是一个栈结构，本质上是一个ArrayList</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompoundRoot</span> <span class="keyword">extends</span> <span class="title">ArrayList</span> </span>&#123;</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CompoundRoot</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CompoundRoot</span><span class="params">(List list)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">super</span>(list);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> CompoundRoot <span class="title">cutStack</span><span class="params">(<span class="keyword">int</span> index)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">new</span> CompoundRoot(<span class="keyword">this</span>.subList(index, <span class="keyword">this</span>.size()));</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">peek</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.get(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">pop</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">this</span>.remove(<span class="number">0</span>);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">push</span><span class="params">(Object o)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.add(<span class="number">0</span>, o);</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>从源码角度看，CompoundRoot就是一个栈结构，有常规的peek（返回栈顶元素），入站出站规则。cutStack方法会返回一个新的CompundRoot，当需要对子栈进行访问时，会通过这个方法返回一个子栈的结构，再进行链式的递归调用。这一递归调用体现了ValueStack数据结构的精妙之处（递归数据结构）。</p>
+<h4 id="CompoundRootAccessor"><a href="#CompoundRootAccessor" class="headerlink" title="CompoundRootAccessor"></a>CompoundRootAccessor</h4><p>OgnlValueStackFactory对ValueStack进行初始化，对OGNL的计算指定许多默认的实现方式</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br><span class="line">89</span><br><span class="line">90</span><br><span class="line">91</span><br><span class="line">92</span><br><span class="line">93</span><br><span class="line">94</span><br><span class="line">95</span><br><span class="line">96</span><br><span class="line">97</span><br><span class="line">98</span><br><span class="line">99</span><br><span class="line">100</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">OgnlValueStackFactory</span> <span class="keyword">implements</span> <span class="title">ValueStackFactory</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> XWorkConverter xworkConverter;</span><br><span class="line">    <span class="keyword">private</span> CompoundRootAccessor compoundRootAccessor;</span><br><span class="line">    <span class="keyword">private</span> TextProvider textProvider;</span><br><span class="line">    <span class="keyword">private</span> Container container;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">boolean</span> allowStaticMethodAccess;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">OgnlValueStackFactory</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Inject</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setXWorkConverter</span><span class="params">(XWorkConverter conv)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.xworkConverter = conv;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Inject</span>(<span class="string">"system"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setTextProvider</span><span class="params">(TextProvider textProvider)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.textProvider = textProvider;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Inject</span>(</span><br><span class="line">        value = <span class="string">"allowStaticMethodAccess"</span>,</span><br><span class="line">        required = <span class="keyword">false</span></span><br><span class="line">    )</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setAllowStaticMethodAccess</span><span class="params">(String allowStaticMethodAccess)</span> </span>&#123;</span><br><span class="line">        <span class="keyword">this</span>.allowStaticMethodAccess = <span class="string">"true"</span>.equalsIgnoreCase(allowStaticMethodAccess);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ValueStack <span class="title">createValueStack</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        ValueStack stack = <span class="keyword">new</span> OgnlValueStack(<span class="keyword">this</span>.xworkConverter, <span class="keyword">this</span>.compoundRootAccessor, <span class="keyword">this</span>.textProvider, <span class="keyword">this</span>.allowStaticMethodAccess);</span><br><span class="line">        <span class="keyword">this</span>.container.inject(stack);</span><br><span class="line">        stack.getContext().put(<span class="string">"com.opensymphony.xwork2.ActionContext.container"</span>, <span class="keyword">this</span>.container);</span><br><span class="line">        <span class="keyword">return</span> stack;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> ValueStack <span class="title">createValueStack</span><span class="params">(ValueStack stack)</span> </span>&#123;</span><br><span class="line">        ValueStack result = <span class="keyword">new</span> OgnlValueStack(stack, <span class="keyword">this</span>.xworkConverter, <span class="keyword">this</span>.compoundRootAccessor, <span class="keyword">this</span>.allowStaticMethodAccess);</span><br><span class="line">        <span class="keyword">this</span>.container.inject(result);</span><br><span class="line">        stack.getContext().put(<span class="string">"com.opensymphony.xwork2.ActionContext.container"</span>, <span class="keyword">this</span>.container);</span><br><span class="line">        <span class="keyword">return</span> result;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Inject</span></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setContainer</span><span class="params">(Container container)</span> <span class="keyword">throws</span> ClassNotFoundException </span>&#123;</span><br><span class="line">        Set&lt;String&gt; names = container.getInstanceNames(PropertyAccessor.class);</span><br><span class="line">        Iterator i$;</span><br><span class="line">        String name;</span><br><span class="line">        Class cls;</span><br><span class="line">        <span class="keyword">if</span> (names != <span class="keyword">null</span>) &#123;</span><br><span class="line">            i$ = names.iterator();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span>(i$.hasNext()) &#123;</span><br><span class="line">                name = (String)i$.next();</span><br><span class="line">                cls = Class.forName(name);</span><br><span class="line">                <span class="keyword">if</span> (cls != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (Map.class.isAssignableFrom(cls)) &#123;</span><br><span class="line">                        PropertyAccessor var6 = (PropertyAccessor)container.getInstance(PropertyAccessor.class, name);</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    OgnlRuntime.setPropertyAccessor(cls, (PropertyAccessor)container.getInstance(PropertyAccessor.class, name));</span><br><span class="line">                    <span class="keyword">if</span> (<span class="keyword">this</span>.compoundRootAccessor == <span class="keyword">null</span> &amp;&amp; CompoundRoot.class.isAssignableFrom(cls)) &#123;</span><br><span class="line">                        <span class="keyword">this</span>.compoundRootAccessor = (CompoundRootAccessor)container.getInstance(PropertyAccessor.class, name);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        names = container.getInstanceNames(MethodAccessor.class);</span><br><span class="line">        <span class="keyword">if</span> (names != <span class="keyword">null</span>) &#123;</span><br><span class="line">            i$ = names.iterator();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span>(i$.hasNext()) &#123;</span><br><span class="line">                name = (String)i$.next();</span><br><span class="line">                cls = Class.forName(name);</span><br><span class="line">                <span class="keyword">if</span> (cls != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    OgnlRuntime.setMethodAccessor(cls, (MethodAccessor)container.getInstance(MethodAccessor.class, name));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        names = container.getInstanceNames(NullHandler.class);</span><br><span class="line">        <span class="keyword">if</span> (names != <span class="keyword">null</span>) &#123;</span><br><span class="line">            i$ = names.iterator();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span>(i$.hasNext()) &#123;</span><br><span class="line">                name = (String)i$.next();</span><br><span class="line">                cls = Class.forName(name);</span><br><span class="line">                <span class="keyword">if</span> (cls != <span class="keyword">null</span>) &#123;</span><br><span class="line">                    OgnlRuntime.setNullHandler(cls, <span class="keyword">new</span> OgnlNullHandlerWrapper((NullHandler)container.getInstance(NullHandler.class, name)));</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.compoundRootAccessor == <span class="keyword">null</span>) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Couldn't find the compound root accessor"</span>);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.container = container;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>其中多次调用了compoundRootAccessor</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br><span class="line">64</span><br><span class="line">65</span><br><span class="line">66</span><br><span class="line">67</span><br><span class="line">68</span><br><span class="line">69</span><br><span class="line">70</span><br><span class="line">71</span><br><span class="line">72</span><br><span class="line">73</span><br><span class="line">74</span><br><span class="line">75</span><br><span class="line">76</span><br><span class="line">77</span><br><span class="line">78</span><br><span class="line">79</span><br><span class="line">80</span><br><span class="line">81</span><br><span class="line">82</span><br><span class="line">83</span><br><span class="line">84</span><br><span class="line">85</span><br><span class="line">86</span><br><span class="line">87</span><br><span class="line">88</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">class</span> <span class="title">CompoundRootAccessor</span> <span class="keyword">implements</span> <span class="title">PropertyAccessor</span>, <span class="title">MethodAccessor</span>, <span class="title">ClassResolver</span> </span>&#123;</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> <span class="keyword">final</span> Logger LOG = LoggerFactory.getLogger(CompoundRootAccessor.class);</span><br><span class="line">    <span class="keyword">private</span> <span class="keyword">static</span> Map invalidMethods = <span class="keyword">new</span> HashMap();</span><br><span class="line">    <span class="keyword">static</span> <span class="keyword">boolean</span> devMode = <span class="keyword">false</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="title">CompoundRootAccessor</span><span class="params">()</span> </span>&#123;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="meta">@Inject</span>(<span class="string">"devMode"</span>)</span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">static</span> <span class="keyword">void</span> <span class="title">setDevMode</span><span class="params">(String mode)</span> </span>&#123;</span><br><span class="line">        devMode = <span class="string">"true"</span>.equals(mode);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> <span class="keyword">void</span> <span class="title">setProperty</span><span class="params">(Map context, Object target, Object name, Object value)</span> <span class="keyword">throws</span> OgnlException </span>&#123;</span><br><span class="line">        CompoundRoot root = (CompoundRoot)target;</span><br><span class="line">        OgnlContext ognlContext = (OgnlContext)context;</span><br><span class="line">        Iterator i$ = root.iterator();</span><br><span class="line"></span><br><span class="line">        <span class="keyword">while</span>(i$.hasNext()) &#123;</span><br><span class="line">            Object o = i$.next();</span><br><span class="line">            <span class="keyword">if</span> (o != <span class="keyword">null</span>) &#123;</span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="keyword">if</span> (OgnlRuntime.hasSetProperty(ognlContext, o, name)) &#123;</span><br><span class="line">                        OgnlRuntime.setProperty(ognlContext, o, name, value);</span><br><span class="line">                        <span class="keyword">return</span>;</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">if</span> (o <span class="keyword">instanceof</span> Map) &#123;</span><br><span class="line">                        Map&lt;Object, Object&gt; map = (Map)o;</span><br><span class="line">                        map.put(name, value);</span><br><span class="line">                        <span class="keyword">return</span>;</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">catch</span> (IntrospectionException var10) &#123;</span><br><span class="line">                    ;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        Boolean reportError = (Boolean)context.get(<span class="string">"com.opensymphony.xwork2.util.ValueStack.ReportErrorsOnNoProp"</span>);</span><br><span class="line">        String msg = <span class="string">"No object in the CompoundRoot has a publicly accessible property named '"</span> + name + <span class="string">"' (no setter could be found)."</span>;</span><br><span class="line">        <span class="keyword">if</span> (reportError != <span class="keyword">null</span> &amp;&amp; reportError) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> XWorkException(msg);</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">if</span> (devMode) &#123;</span><br><span class="line">                LOG.warn(msg, <span class="keyword">new</span> String[<span class="number">0</span>]);</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">public</span> Object <span class="title">getProperty</span><span class="params">(Map context, Object target, Object name)</span> <span class="keyword">throws</span> OgnlException </span>&#123;</span><br><span class="line">        CompoundRoot root = (CompoundRoot)target;</span><br><span class="line">        OgnlContext ognlContext = (OgnlContext)context;</span><br><span class="line">        <span class="keyword">if</span> (name <span class="keyword">instanceof</span> Integer) &#123;</span><br><span class="line">            Integer index = (Integer)name;</span><br><span class="line">            <span class="keyword">return</span> root.cutStack(index);</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (!(name <span class="keyword">instanceof</span> String)) &#123;</span><br><span class="line">            <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="string">"top"</span>.equals(name)) &#123;</span><br><span class="line">            <span class="keyword">return</span> root.size() &gt; <span class="number">0</span> ? root.get(<span class="number">0</span>) : <span class="keyword">null</span>;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            Iterator i$ = root.iterator();</span><br><span class="line"></span><br><span class="line">            <span class="keyword">while</span>(<span class="keyword">true</span>) &#123;</span><br><span class="line">                Object o;</span><br><span class="line">                <span class="keyword">do</span> &#123;</span><br><span class="line">                    <span class="keyword">if</span> (!i$.hasNext()) &#123;</span><br><span class="line">                        <span class="keyword">return</span> <span class="keyword">null</span>;</span><br><span class="line">                    &#125;</span><br><span class="line"></span><br><span class="line">                    o = i$.next();</span><br><span class="line">                &#125; <span class="keyword">while</span>(o == <span class="keyword">null</span>);</span><br><span class="line"></span><br><span class="line">                <span class="keyword">try</span> &#123;</span><br><span class="line">                    <span class="keyword">if</span> (OgnlRuntime.hasGetProperty(ognlContext, o, name) || o <span class="keyword">instanceof</span> Map &amp;&amp; ((Map)o).containsKey(name)) &#123;</span><br><span class="line">                        <span class="keyword">return</span> OgnlRuntime.getProperty(ognlContext, o, name);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">catch</span> (OgnlException var10) &#123;</span><br><span class="line">                    <span class="keyword">if</span> (var10.getReason() != <span class="keyword">null</span>) &#123;</span><br><span class="line">                        String msg = <span class="string">"Caught an Ognl exception while getting property "</span> + name;</span><br><span class="line">                        <span class="keyword">throw</span> <span class="keyword">new</span> XWorkException(msg, var10);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125; <span class="keyword">catch</span> (IntrospectionException var11) &#123;</span><br><span class="line">                    ;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure>
+<p>CompoundRootAccessor对无论属性访问或者方法访问都做了重新定义。也就是说ValueStack进行Ognl计算时都会循环扫描CompoundRoot所有元素。</p>
+<p>在对于ActionContext和ValueStack的关系上，他们是形影不离的。</p>
+<p>ActionContext的创建，总是伴随着ValueStack的创建。</p>
+<h2 id="控制流体系-1"><a href="#控制流体系-1" class="headerlink" title="控制流体系"></a>控制流体系</h2><h3 id="Action"><a href="#Action" class="headerlink" title="Action"></a>Action</h3><p>方法主体：Action接口的具体实现类是Xwork进行核心业务逻辑处理的场所</p>
+<p>运行参数：接口方法不包含参数，无论是请求参数还是响应返回数据都以Action中属性变量的形式出现。</p>
+<p>返回值：返回值是一个字符串，表示一个业务逻辑是否成功的标志。</p>
+<p>action的两个突破点：</p>
+<ol>
+<li>突破了传统Servlet模式中响应对象对web容器的依赖</li>
+<li>突破了传统Servlet模式中相依红对象无状态的限制</li>
+</ol>
+<p>Action的两个特征：</p>
+<ol>
+<li>属性特征：</li>
+</ol>
+<p>Action主要表现了对象自身的状态，对象与其他对象之间的协作关系。</p>
+<p>前者成为XWork进行数据访问的基础，后者成为对象之间协作关系的描述。</p>
+<ol>
+<li>行为特征：</li>
+</ol>
+<p>指对特定请求进行相应的过程。</p>
+<h3 id="Interceptor"><a href="#Interceptor" class="headerlink" title="Interceptor"></a>Interceptor</h3><h4 id="基本概念-1"><a href="#基本概念-1" class="headerlink" title="基本概念"></a>基本概念</h4><p>本质是一段代码可以通过定义一个组织点，来指定interceptor的代码逻辑在组织点元素的之前或者之后执行。</p>
+<p>AOP相关概念：</p>
+<p>切面：一个关注点的模块化，这个关注点的实现可能横切多个对象。模块化的过程由Interceptor来实现</p>
+<p>连接点：程序执行过程中明确的点。</p>
+<p>切入点：制定一个通知将被引发的一系列连接点集合。</p>
+<p>通知：在特定的连接点，aop框架指定的动作。</p>
+<p>从最上面的图，可以看出的Interceptor的特点：</p>
+<ul>
+<li>群居：同一时刻总有多个Interceptor对象同时存在并协作</li>
+<li>栈结构：Interceptor和Interceptor互相包裹形成栈结构，Action对象包裹在对底层，作为栈底。</li>
+<li>执行栈：Action Invocation所执行的调度逻辑，是针对整个栈结构。</li>
+</ul>
+<h4 id="Interceptor的定义"><a href="#Interceptor的定义" class="headerlink" title="Interceptor的定义"></a>Interceptor的定义</h4><p>Interceptor源码是一个接口，有destory()、init()、intercept()方法，自己写一个简单的Interceptor源码，实现intercept，将Actioninvocation当做参数传入。原因是：</p>
+<ul>
+<li>便于Interceptor随时与控制流和数据流的其他元素沟通。因为SctionInvocation的操作接口中不仅仅包含控制员幻速Action和ActionProxy的访问接口，也包含了ActionContext和ValueStack的访问接口。</li>
+<li>便于ActionInvocation在Interceptor的内部进行执行调度。</li>
+</ul>
+<p>方法内部只有一句invocation.invoke(); invoke是ActionInvocation的核心，意思是对Interceptor对象和Action对象共同构成的执行栈进行逻辑执行调度。</p>
+<p>在Interceptor内部有两种不同的逻辑执行顺序：</p>
+<ul>
+<li>调用ActionInvocation的Invoke方法指定对执行栈进一步的调度执行。inteceptor在完成自身逻辑之后，有责任把执行的控制权交给执行栈的下一个元素继续执行，下一个元素不是action就是interceptor，形成了一个递归调用。invoke方法及时触发整个递归调用链的入口，调用的结果也是整个执行栈的执行结果。invoke方法的调用触发了执行栈中剩余interceptor对象和action对象的执行完成并返回结果。</li>
+<li>返回一个String类型的ResultCode来种终止执行栈的调用。</li>
+</ul>
+<h3 id="ActionInvocation"><a href="#ActionInvocation" class="headerlink" title="ActionInvocation"></a>ActionInvocation</h3><p>ActionInvocation在Xwork控制流中是核心调度器</p>
+<p>代码：</p>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br></pre></td><td class="code"><pre><span class="line">publicinterface ActionInvocation extends Serializable &#123;</span><br><span class="line"></span><br><span class="line"><span class="function">Object <span class="title">getAction</span><span class="params">()</span></span>;<span class="comment">//获取与当前绑定的action对象</span></span><br><span class="line"><span class="function"><span class="keyword">boolean</span> <span class="title">isExecuted</span><span class="params">()</span></span>;<span class="comment">// 判断是否完成对Action和Result的调度执行</span></span><br><span class="line">ActionContextgetInvocationContext();<span class="comment">//获取当前半丁的actionContext</span></span><br><span class="line"><span class="function">ActionProxy <span class="title">getProxy</span><span class="params">()</span></span>;<span class="comment">//获取当前绑定的actionProxy对象</span></span><br><span class="line"><span class="function">Result <span class="title">getResult</span><span class="params">()</span> throwsException</span>;<span class="comment">//获取result对象</span></span><br><span class="line"><span class="function">String <span class="title">getResultCode</span><span class="params">()</span></span>;<span class="comment">//获取调度执行结果代码</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">setResultCode</span><span class="params">(Stringvar1)</span></span>;<span class="comment">// 设置调度执行的结果代码，往往用于重置Action对象</span></span><br><span class="line"><span class="function">ValueStack <span class="title">getStack</span><span class="params">()</span></span>;<span class="comment">//获取与当前绑定的ValueStack</span></span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">addPreResultListener</span><span class="params">(PreResultListener var1)</span></span>;<span class="comment">//注册一个PreResultListener</span></span><br><span class="line"><span class="function">String <span class="title">invoke</span><span class="params">()</span> throwsException</span>;<span class="comment">//单单执行操作Action的接口</span></span><br><span class="line"><span class="function">String <span class="title">invokeActionOnly</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">setActionEventListener</span><span class="params">(ActionEventListener var1)</span></span>;</span><br><span class="line"><span class="function"><span class="keyword">void</span> <span class="title">init</span><span class="params">(ActionProxy var1)</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p> 分类：</p>
+<ul>
+<li>对控制流 数据流元素的访问接口：getAction/getActionProxy/getStack</li>
+<li>对执行调度流程的扩展接口：addPreListener/setActionEventListener</li>
+<li>对执行栈进行调度的执行接口：invoke/invokeActionOnly</li>
+</ul>
+<h4 id="ActionInvocation调度分析"><a href="#ActionInvocation调度分析" class="headerlink" title="ActionInvocation调度分析"></a>ActionInvocation调度分析</h4><p>他的核心调度功能是通过invoke完成的。我们重新对invoke做一个解释</p>
+<ul>
+<li>如果执行栈中下一个元素是inteceptor对象，则执行该这个inteceptor</li>
+<li>如果执行栈中下一个元素是Action对象，那么执行该Action</li>
+<li>如果执行栈找不到下一个元素，那么执行终止，返回ResultCode</li>
+</ul>
+<figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">public</span> String <span class="title">invoke</span><span class="params">()</span> <span class="keyword">throws</span> Exception </span>&#123;</span><br><span class="line">    String profileKey = <span class="string">"invoke: "</span>;</span><br><span class="line"></span><br><span class="line">    String var21;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        UtilTimerStack.push(profileKey);</span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.executed) &#123;</span><br><span class="line">            <span class="keyword">throw</span> <span class="keyword">new</span> IllegalStateException(<span class="string">"Action has already executed"</span>);</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (<span class="keyword">this</span>.interceptors.hasNext()) &#123;</span><br><span class="line">            InterceptorMapping interceptor = (InterceptorMapping)<span class="keyword">this</span>.interceptors.next();</span><br><span class="line">            String interceptorMsg = <span class="string">"interceptor: "</span> + interceptor.getName();</span><br><span class="line">            UtilTimerStack.push(interceptorMsg);</span><br><span class="line"></span><br><span class="line">            <span class="keyword">try</span> &#123;</span><br><span class="line">                <span class="keyword">this</span>.resultCode = interceptor.getInterceptor().intercept(<span class="keyword">this</span>);</span><br><span class="line">            &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                UtilTimerStack.pop(interceptorMsg);</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">this</span>.resultCode = <span class="keyword">this</span>.invokeActionOnly();</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!<span class="keyword">this</span>.executed) &#123;</span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">this</span>.preResultListeners != <span class="keyword">null</span>) &#123;</span><br><span class="line">                Iterator i$ = <span class="keyword">this</span>.preResultListeners.iterator();</span><br><span class="line"></span><br><span class="line">                <span class="keyword">while</span>(i$.hasNext()) &#123;</span><br><span class="line">                    Object preResultListener = (PreResultListener)i$.next();</span><br><span class="line">                    PreResultListener listener = (PreResultListener)preResultListener;</span><br><span class="line">                    String _profileKey = <span class="string">"preResultListener: "</span>;</span><br><span class="line"></span><br><span class="line">                    <span class="keyword">try</span> &#123;</span><br><span class="line">                        UtilTimerStack.push(_profileKey);</span><br><span class="line">                        listener.beforeResult(<span class="keyword">this</span>, <span class="keyword">this</span>.resultCode);</span><br><span class="line">                    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">                        UtilTimerStack.pop(_profileKey);</span><br><span class="line">                    &#125;</span><br><span class="line">                &#125;</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">this</span>.proxy.getExecuteResult()) &#123;</span><br><span class="line">                <span class="keyword">this</span>.executeResult();</span><br><span class="line">            &#125;</span><br><span class="line"></span><br><span class="line">            <span class="keyword">this</span>.executed = <span class="keyword">true</span>;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        var21 = <span class="keyword">this</span>.resultCode;</span><br><span class="line">    &#125; <span class="keyword">finally</span> &#123;</span><br><span class="line">        UtilTimerStack.pop(profileKey);</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">return</span> var21;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>intercept和invoke形成了一个递归调用。递归调用的嵌套执行使得递归调用逻辑为中心的代码段称为逻辑的分水岭。</p>
+<h3 id="ActionProxy"><a href="#ActionProxy" class="headerlink" title="ActionProxy"></a>ActionProxy</h3><h4 id="定义"><a href="#定义" class="headerlink" title="定义"></a>定义</h4> <figure class="highlight java"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="class"><span class="keyword">interface</span> <span class="title">ActionProxy</span> </span>&#123;</span><br><span class="line">    <span class="function">Object <span class="title">getAction</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">getActionName</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">ActionConfig <span class="title">getConfig</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">void</span> <span class="title">setExecuteResult</span><span class="params">(<span class="keyword">boolean</span> var1)</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">boolean</span> <span class="title">getExecuteResult</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">ActionInvocation <span class="title">getInvocation</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">getNamespace</span><span class="params">()</span></span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">execute</span><span class="params">()</span> <span class="keyword">throws</span> Exception</span>;</span><br><span class="line"></span><br><span class="line">    <span class="function">String <span class="title">getMethod</span><span class="params">()</span></span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>ActionProxy和actioninvocation也是一个包罗万象的接口。</p>
+<p>一方面ActionProxy对于调用者屏蔽了XWork的调用细节。</p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/05/03/struts2系列——初始化流程/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/05/10/struts2系列——S2漏洞/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2018/05/06/struts2系列——XWork/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

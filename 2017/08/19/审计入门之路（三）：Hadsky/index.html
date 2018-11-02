@@ -1,0 +1,326 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>审计入门之路（三）：Hadsky | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="这次是一个轻论坛，下载的源码合计1M。数据库一共才8个表，过滤挺暴力的，但还是找到一处后台的注入。 /app/superadmin/phpscript/moveread.php 11行1234567if ($_G[&apos;GET&apos;][&apos;TABLE&apos;] == &apos;read&apos; &amp;amp;&amp;amp; $sortid &amp;amp;&amp;amp; count($ids)) &amp;#123;	foreach ($ids as">
+<meta property="og:type" content="article">
+<meta property="og:title" content="审计入门之路（三）：Hadsky">
+<meta property="og:url" content="http://hebic.me/2017/08/19/审计入门之路（三）：Hadsky/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="这次是一个轻论坛，下载的源码合计1M。数据库一共才8个表，过滤挺暴力的，但还是找到一处后台的注入。 /app/superadmin/phpscript/moveread.php 11行1234567if ($_G[&apos;GET&apos;][&apos;TABLE&apos;] == &apos;read&apos; &amp;amp;&amp;amp; $sortid &amp;amp;&amp;amp; count($ids)) &amp;#123;	foreach ($ids as">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-08-20T00:54:54.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="审计入门之路（三）：Hadsky">
+<meta name="twitter:description" content="这次是一个轻论坛，下载的源码合计1M。数据库一共才8个表，过滤挺暴力的，但还是找到一处后台的注入。 /app/superadmin/phpscript/moveread.php 11行1234567if ($_G[&apos;GET&apos;][&apos;TABLE&apos;] == &apos;read&apos; &amp;amp;&amp;amp; $sortid &amp;amp;&amp;amp; count($ids)) &amp;#123;	foreach ($ids as">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-审计入门之路（三）：Hadsky" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">审计入门之路（三）：Hadsky</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.08.19</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2017/08/19/审计入门之路（三）：Hadsky/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>这次是一个轻论坛，下载的源码合计1M。数据库一共才8个表，过滤挺暴力的，但还是找到一处后台的注入。</p>
+<p>/app/superadmin/phpscript/moveread.php 11行<br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> ($_G[<span class="string">'GET'</span>][<span class="string">'TABLE'</span>] == <span class="string">'read'</span> &amp;&amp; $sortid &amp;&amp; count($ids)) &#123;</span><br><span class="line">	<span class="keyword">foreach</span> ($ids <span class="keyword">as</span> $id) &#123;</span><br><span class="line">		<span class="keyword">if</span> ($id)</span><br><span class="line">			mysql_query(<span class="string">"update `&#123;$_G['MYSQL']['PREFIX']&#125;read` set `sortid`=&#123;$sortid&#125; where `id`=&#123;$id&#125;"</span>);</span><br><span class="line">	&#125;</span><br><span class="line">	$r = <span class="string">'操作成功！'</span>;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>$id被带入数据库中，向上追$id</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">$ids = (<span class="keyword">array</span>)$_POST[<span class="string">'ids'</span>];</span><br></pre></td></tr></table></figure>
+<p>所以就直接注入了。</p>
+<p>除了注入，还有一处没有利用成功的XSS，也写进来把。</p>
+<p>/puyuetian/function.php 258行<br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">getClientInfos</span><span class="params">($info = <span class="string">'all'</span>)</span> </span>&#123;</span><br><span class="line">	<span class="keyword">if</span> ($info == <span class="string">'all'</span>) &#123;</span><br><span class="line">		$infos = <span class="string">'浏览器标示：'</span> . $_SERVER[<span class="string">'HTTP_USER_AGENT'</span>] . <span class="string">' &lt;br&gt;</span></span><br><span class="line"><span class="string">'</span>;</span><br><span class="line">		$infos .= <span class="string">'客户端语言：'</span> . $_SERVER[<span class="string">'HTTP_ACCEPT_LANGUAGE'</span>] . <span class="string">'</span></span><br><span class="line"><span class="string">&lt;br&gt;</span></span><br><span class="line"><span class="string">'</span>;</span><br><span class="line">		$infos .= <span class="string">'客户端IP地址：'</span> . $_SERVER[<span class="string">'REMOTE_ADDR'</span>];</span><br><span class="line">	&#125; <span class="keyword">elseif</span> ($info == <span class="string">'ip'</span>) &#123;</span><br><span class="line">		$IPaddress = <span class="string">''</span>;</span><br><span class="line">		<span class="keyword">if</span> (<span class="keyword">isset</span>($_SERVER)) &#123;</span><br><span class="line">			<span class="keyword">if</span> (<span class="keyword">isset</span>($_SERVER[<span class="string">"HTTP_X_FORWARDED_FOR"</span>])) &#123;</span><br><span class="line">				$IPaddress = $_SERVER[<span class="string">"HTTP_X_FORWARDED_FOR"</span>];</span><br><span class="line">			&#125; <span class="keyword">else</span> <span class="keyword">if</span> (<span class="keyword">isset</span>($_SERVER[<span class="string">"HTTP_CLIENT_IP"</span>])) &#123;</span><br><span class="line">				$IPaddress = $_SERVER[<span class="string">"HTTP_CLIENT_IP"</span>];</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				$IPaddress = $_SERVER[<span class="string">"REMOTE_ADDR"</span>];</span><br><span class="line">			&#125;</span><br><span class="line">		&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">			<span class="keyword">if</span> (getenv(<span class="string">"HTTP_X_FORWARDED_FOR"</span>)) &#123;</span><br><span class="line">				$IPaddress = getenv(<span class="string">"HTTP_X_FORWARDED_FOR"</span>);</span><br><span class="line">			&#125; <span class="keyword">else</span> <span class="keyword">if</span> (getenv(<span class="string">"HTTP_CLIENT_IP"</span>)) &#123;</span><br><span class="line">				$IPaddress = getenv(<span class="string">"HTTP_CLIENT_IP"</span>);</span><br><span class="line">			&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">				$IPaddress = getenv(<span class="string">"REMOTE_ADDR"</span>);</span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">		$infos = $IPaddress;</span><br><span class="line">	&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">		$infos = $_SERVER[$info];</span><br><span class="line">	&#125;</span><br><span class="line">	<span class="keyword">return</span> $infos;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>没有做ip的限制。把ip存入数据库的时候有过滤，所以不能注入，但是他把ip直接输出在每个网页的最下面了。但我不知道怎么用伪造ip头做XSS。有会的师傅请指点一哈^_^</p>
+<p>最近看Seay师傅写的代码审计书，跟吸大麻似的两天就看完了。学习很多干货，看代码的时候也更有针对性了。同时也意识到了这几次找的注入都是很基础的漏洞。我在找的是之后也发现，如果入口过滤完善，程序员写代码按照规范，也就基本不会出现注入一类的漏洞了。（二次注入不算）所以这几次找的注入都是程序员写代码时没使用db类，使用query()直接查询出了问题。</p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/08/19/审计入门之路（二）：ourphp/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/08/19/0基础内网渗透思路整理与工具使用/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2017/08/19/审计入门之路（三）：Hadsky/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

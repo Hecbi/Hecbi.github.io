@@ -1,0 +1,346 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>审计入门之路（四）：GenixCMS | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="审计入门之路（四）：GenixCMS柠檬师傅和皓宝宝都拿CVE了，我也跟风审这cms。要是能申请到一个CVE-ID这个学期的目标就提前完成了。 一周之后就收到了第一个CVE，开心。顺带着把审到的几个全都交了，CNA也都分配了CVE-ID 后台SQL注入输入类没有看出什么问题，根据我的水平，也只能找找过滤不完善的地方了。/inc/lib/control/backend/menus/control.p">
+<meta property="og:type" content="article">
+<meta property="og:title" content="审计入门之路（四）：GenixCMS">
+<meta property="og:url" content="http://hebic.me/2017/08/19/审计入门之路（四）：GeniXCMS/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="审计入门之路（四）：GenixCMS柠檬师傅和皓宝宝都拿CVE了，我也跟风审这cms。要是能申请到一个CVE-ID这个学期的目标就提前完成了。 一周之后就收到了第一个CVE，开心。顺带着把审到的几个全都交了，CNA也都分配了CVE-ID 后台SQL注入输入类没有看出什么问题，根据我的水平，也只能找找过滤不完善的地方了。/inc/lib/control/backend/menus/control.p">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://120.25.80.195:7230/04/3330811745.png">
+<meta property="og:image" content="http://120.25.80.195:7230/04/3053319278.png">
+<meta property="og:image" content="http://120.25.80.195:7230/04/3374663366.png">
+<meta property="og:updated_time" content="2017-08-20T00:55:02.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="审计入门之路（四）：GenixCMS">
+<meta name="twitter:description" content="审计入门之路（四）：GenixCMS柠檬师傅和皓宝宝都拿CVE了，我也跟风审这cms。要是能申请到一个CVE-ID这个学期的目标就提前完成了。 一周之后就收到了第一个CVE，开心。顺带着把审到的几个全都交了，CNA也都分配了CVE-ID 后台SQL注入输入类没有看出什么问题，根据我的水平，也只能找找过滤不完善的地方了。/inc/lib/control/backend/menus/control.p">
+<meta name="twitter:image" content="http://120.25.80.195:7230/04/3330811745.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#后台SQL注入"><span class="toc-text">后台SQL注入</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#绕过验证邮箱查重机制"><span class="toc-text">绕过验证邮箱查重机制</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#后台任意文件删除"><span class="toc-text">后台任意文件删除</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#储存型XSS"><span class="toc-text">储存型XSS</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-审计入门之路（四）：GeniXCMS" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">审计入门之路（四）：GenixCMS</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.08.19</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2017/08/19/审计入门之路（四）：GeniXCMS/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>审计入门之路（四）：GenixCMS<br>柠檬师傅和皓宝宝都拿CVE了，我也跟风审这cms。要是能申请到一个CVE-ID这个学期的目标就提前完成了。</p>
+<p>一周之后就收到了第一个CVE，开心。顺带着把审到的几个全都交了，CNA也都分配了CVE-ID</p>
+<h2 id="后台SQL注入"><a href="#后台SQL注入" class="headerlink" title="后台SQL注入"></a>后台SQL注入</h2><p>输入类没有看出什么问题，根据我的水平，也只能找找过滤不完善的地方了。<br><code>/inc/lib/control/backend/menus/control.php 245行</code><br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">case</span> <span class="string">'remove'</span>:</span><br><span class="line">            <span class="keyword">if</span> (<span class="keyword">isset</span>($_GET[<span class="string">'menuid'</span>])) &#123;</span><br><span class="line">                $token = Typo::cleanX($_GET[<span class="string">'token'</span>]);</span><br><span class="line">                <span class="keyword">if</span> (!<span class="keyword">isset</span>($_GET[<span class="string">'token'</span>]) || !Token::validate($token)) &#123;</span><br><span class="line">                    <span class="comment">// VALIDATE ALL</span></span><br><span class="line">                    $alertDanger[] = TOKEN_NOT_EXIST;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">isset</span>($alertDanger)) &#123;</span><br><span class="line">                    $data[<span class="string">'alertDanger'</span>] = $alertDanger;</span><br><span class="line">                &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                    $menus = json_decode(Options::v(<span class="string">'menus'</span>), <span class="keyword">true</span>);</span><br><span class="line">                    <span class="keyword">unset</span>($menus[$_GET[<span class="string">'menuid'</span>]]);</span><br><span class="line">                    $sql = sprintf(<span class="string">"DELETE FROM `menus` WHERE `menuid` = '%s' "</span>, $_GET[<span class="string">'menuid'</span>]);</span><br><span class="line">                    Db::query($sql);</span><br><span class="line">                    $menu = json_encode($menus);</span><br><span class="line">                    Options::update(<span class="string">'menus'</span>, $menu);</span><br><span class="line">                    <span class="keyword">new</span> Options();</span><br><span class="line">                    $data[<span class="string">'alertSuccess'</span>][] = <span class="string">'Menu Deleted'</span>;</span><br><span class="line">                &#125;</span><br><span class="line">                <span class="keyword">if</span> (<span class="keyword">isset</span>($_GET[<span class="string">'token'</span>])) &#123;</span><br><span class="line">                    Token::remove($token);</span><br><span class="line">                &#125;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                $data[<span class="string">'alertDanger'</span>][] = <span class="string">'No ID Selected.'</span>;</span><br><span class="line">            &#125;</span><br><span class="line">                $data[<span class="string">'menus'</span>] = Options::get(<span class="string">'menus'</span>);</span><br><span class="line">                Theme::admin(<span class="string">'header'</span>, $data);</span><br><span class="line">                System::inc(<span class="string">'menus'</span>, $data);</span><br><span class="line">                Theme::admin(<span class="string">'footer'</span>);</span><br><span class="line">            <span class="keyword">break</span>;</span><br></pre></td></tr></table></figure></p>
+<p><code>http://localhost/CMS/GeniXCMS-master/gxadmin/index.php?page=menus&amp;act=remove</code> 因为有csrftoken，只能改包。抓一个删除menus的包，修改token和menuid的位置，然后修改menuid的内容：hebic’/<strong>/or/</strong>/extractvalue(1,concat(0x7e,database()))/**/or’</p>
+<p><img src="http://120.25.80.195:7230/04/3330811745.png" alt="37ca5818-29ad-11e7-8f2f-d1adf3648435.png"></p>
+<h2 id="绕过验证邮箱查重机制"><a href="#绕过验证邮箱查重机制" class="headerlink" title="绕过验证邮箱查重机制"></a>绕过验证邮箱查重机制</h2><p>在/register.php的验证邮箱部分用了<br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (!User::isEmail($_POST[<span class="string">'email'</span>])) &#123;</span><br><span class="line">        $alertDanger[] = MSG_USER_EMAIL_EXIST;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">isEmail</span><span class="params">($vars)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> (<span class="keyword">isset</span>($_GET[<span class="string">'act'</span>]) &amp;&amp; $_GET[<span class="string">'act'</span>] == <span class="string">'edit'</span>) &#123;</span><br><span class="line">        $id = Typo::int($_GET[<span class="string">'id'</span>]);</span><br><span class="line">        $where = <span class="string">"AND `id` != '&#123;$id&#125;' "</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        $where = <span class="string">''</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    $vars = sprintf(<span class="string">'%s'</span>, Typo::cleanX($vars));</span><br><span class="line">    $sql = sprintf(<span class="string">"SELECT * FROM `user` WHERE `email` = '%s' %s"</span>, $vars, $where);</span><br><span class="line">    $e = Db::result($sql);</span><br><span class="line">    <span class="keyword">if</span> (Db::$num_rows &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>如果注册时在URL后加上?act=edit&amp;id=1 就可以用1的邮箱注册了。</p>
+<p>不过这个CMS的邮箱不能用来登陆，只能用来找回密码。所以也是一个挺鸡肋的漏洞。</p>
+<p>他在验证用户名是否存在时用的<br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (User::isExist($_POST[<span class="string">'userid'</span>])) &#123;</span><br><span class="line">        $alertDanger[] = MSG_USER_EXIST;</span><br><span class="line">    &#125;</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">isExist</span><span class="params">($user, $except=<span class="string">''</span>)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">if</span> ($except != <span class="string">''</span>) &#123;</span><br><span class="line">        $id = Typo::cleanX(Typo::strip($except));</span><br><span class="line">        $where = <span class="string">"AND `userid` != '&#123;$id&#125;' "</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        $where = <span class="string">''</span>;</span><br><span class="line">    &#125;</span><br><span class="line">    $user = sprintf(<span class="string">'%s'</span>, Typo::cleanX($user));</span><br><span class="line">    $sql = sprintf(<span class="string">"SELECT `userid` FROM `user` WHERE `userid` = '%s' %s "</span>, $user, $where);</span><br><span class="line">    $usr = Db::result($sql);</span><br><span class="line">    $n = Db::$num_rows;</span><br><span class="line">    <span class="keyword">if</span> ($n &gt; <span class="number">0</span>) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">true</span>;</span><br><span class="line">    &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>这里就不会绕过验证是否有相同用户名的部分了。有点遗憾。</p>
+<h2 id="后台任意文件删除"><a href="#后台任意文件删除" class="headerlink" title="后台任意文件删除"></a>后台任意文件删除</h2><p><code>inc/lib/Files.class.php</code> 中的函数delTree<br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="keyword">static</span> <span class="function"><span class="keyword">function</span> <span class="title">delTree</span><span class="params">($dir)</span></span></span><br><span class="line"><span class="function"></span>&#123;</span><br><span class="line">    <span class="keyword">try</span> &#123;</span><br><span class="line">        $files = array_diff(scandir($dir), <span class="keyword">array</span>(<span class="string">'.'</span>, <span class="string">'..'</span>));</span><br><span class="line">        <span class="keyword">foreach</span> ($files <span class="keyword">as</span> $file) &#123;</span><br><span class="line">            (is_dir(<span class="string">"$dir/$file"</span>)) ? <span class="keyword">self</span>::delTree(<span class="string">"$dir/$file"</span>) : @unlink(<span class="string">"$dir/$file"</span>);</span><br><span class="line">        &#125;</span><br><span class="line">        rmdir($dir);</span><br><span class="line">    &#125; <span class="keyword">catch</span> (<span class="keyword">Exception</span> $e) &#123;</span><br><span class="line">        <span class="keyword">return</span> <span class="keyword">false</span>;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>指定一个参数，就可以删除。找一个使用delTree函数的地方。</p>
+<p><code>inc/lib/Control/Backend/themes.control.php 84行</code><br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span> (<span class="keyword">isset</span>($_GET[<span class="string">'act'</span>])) &#123;</span><br><span class="line">    <span class="keyword">if</span> ($_GET[<span class="string">'act'</span>] == <span class="string">'activate'</span>) &#123;</span><br><span class="line">        $token = Typo::cleanX($_GET[<span class="string">'token'</span>]);</span><br><span class="line">        <span class="keyword">if</span> (!Token::validate($token)) &#123;</span><br><span class="line">            $alertDanger[] = TOKEN_NOT_EXIST;</span><br><span class="line">        &#125;</span><br><span class="line"></span><br><span class="line">        <span class="keyword">if</span> (!<span class="keyword">isset</span>($alertDanger)) &#123;</span><br><span class="line">            Theme::activate(Typo::cleanX($_GET[<span class="string">'themes'</span>]));</span><br><span class="line">            $data[<span class="string">'alertSuccess'</span>][] = THEME_ACTIVATED;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            $data[<span class="string">'alertDanger'</span>] = $alertDanger;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125; <span class="keyword">elseif</span> ($_GET[<span class="string">'act'</span>] == <span class="string">'remove'</span>) &#123;</span><br><span class="line">        $token = Typo::cleanX($_GET[<span class="string">'token'</span>]);</span><br><span class="line">        <span class="keyword">if</span> (!Token::validate($_GET[<span class="string">'token'</span>])) &#123;</span><br><span class="line">            $alertDanger[] = TOKEN_NOT_EXIST;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (Theme::isActive(Typo::cleanX($_GET[<span class="string">'themes'</span>]))) &#123;</span><br><span class="line">            $alertDanger[] = MSG_THEME_IS_ACTIVE;</span><br><span class="line">        &#125;</span><br><span class="line">        <span class="keyword">if</span> (!<span class="keyword">isset</span>($alertDanger)) &#123;</span><br><span class="line">            <span class="keyword">if</span> (Files::delTree(GX_THEME.<span class="string">'/'</span>.$_GET[<span class="string">'themes'</span>])) &#123;</span><br><span class="line">                $data[<span class="string">'alertSuccess'</span>][] = THEME_REMOVED;</span><br><span class="line">            &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">                $data[<span class="string">'alertDanger'</span>][] = MSG_THEME_NOT_REMOVED;</span><br><span class="line">            &#125;</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            $data[<span class="string">'alertDanger'</span>] = $alertDanger;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>删除主题，抓个包，在themes参数改成删掉的内容就可以。虽然会报错，但还是删掉了。</p>
+<h2 id="储存型XSS"><a href="#储存型XSS" class="headerlink" title="储存型XSS"></a>储存型XSS</h2><p>这个发现是挺偶然的。本来是在前台回复了一个带控制符标签的内容。后台看到的的确是被编码了的html标签。不过把鼠标移动上去他会执行这个标签内容。</p>
+<p><img src="http://120.25.80.195:7230/04/3053319278.png" alt="2.png"></p>
+<p>前台回复一个&#60;script&gt;alert(1)&#60;/script&gt;</p>
+<p><img src="http://120.25.80.195:7230/04/3374663366.png" alt="QQ截图20170426211616.png"></p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/08/19/0基础内网渗透思路整理与工具使用/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/08/19/MySQL注入绕过过滤表名/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2017/08/19/审计入门之路（四）：GeniXCMS/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

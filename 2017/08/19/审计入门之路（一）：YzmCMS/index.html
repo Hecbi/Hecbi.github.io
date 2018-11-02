@@ -1,0 +1,348 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>审计入门之路（一）：YzmCMS | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="上个月把审计扔掉补充渗透的知识了，大概三周左右。我把渗透的常规思路和常用的工具都学了一圈，顺便挣了点点稿费，原文在：http://bobao.360.cn/learning/detail/3683.html ，有错误之处还请师傅们指出^_^ 有新知识学习是最开心的了 渗透入门结束还是回来搞审计，选了一个之前乐清小俊杰师傅搞过的YzmCMS。他审这个CMS的时候说是个同学写的小源码，如今这个CMS已">
+<meta property="og:type" content="article">
+<meta property="og:title" content="审计入门之路（一）：YzmCMS">
+<meta property="og:url" content="http://hebic.me/2017/08/19/审计入门之路（一）：YzmCMS/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="上个月把审计扔掉补充渗透的知识了，大概三周左右。我把渗透的常规思路和常用的工具都学了一圈，顺便挣了点点稿费，原文在：http://bobao.360.cn/learning/detail/3683.html ，有错误之处还请师傅们指出^_^ 有新知识学习是最开心的了 渗透入门结束还是回来搞审计，选了一个之前乐清小俊杰师傅搞过的YzmCMS。他审这个CMS的时候说是个同学写的小源码，如今这个CMS已">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://120.25.80.195:7230/04/3299974566.jpg">
+<meta property="og:image" content="http://120.25.80.195:7230/04/2534297925.png">
+<meta property="og:image" content="http://120.25.80.195:7230/04/596998371.png','0','1',null,'post','publish',null,'2','1','1','1','0','231'),">
+<meta property="og:updated_time" content="2017-08-20T00:54:50.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="审计入门之路（一）：YzmCMS">
+<meta name="twitter:description" content="上个月把审计扔掉补充渗透的知识了，大概三周左右。我把渗透的常规思路和常用的工具都学了一圈，顺便挣了点点稿费，原文在：http://bobao.360.cn/learning/detail/3683.html ，有错误之处还请师傅们指出^_^ 有新知识学习是最开心的了 渗透入门结束还是回来搞审计，选了一个之前乐清小俊杰师傅搞过的YzmCMS。他审这个CMS的时候说是个同学写的小源码，如今这个CMS已">
+<meta name="twitter:image" content="http://120.25.80.195:7230/04/3299974566.jpg">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-3"><a class="toc-link" href="#一点点经验"><span class="toc-text">一点点经验</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-审计入门之路（一）：YzmCMS" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">审计入门之路（一）：YzmCMS</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.08.19</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2017/08/19/审计入门之路（一）：YzmCMS/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>上个月把审计扔掉补充渗透的知识了，大概三周左右。我把渗透的常规思路和常用的工具都学了一圈，顺便挣了点点稿费，原文在：<a href="http://bobao.360.cn/learning/detail/3683.html" target="_blank" rel="noopener">http://bobao.360.cn/learning/detail/3683.html</a> ，有错误之处还请师傅们指出^_^ 有新知识学习是最开心的了</p>
+<p>渗透入门结束还是回来搞审计，选了一个之前乐清小俊杰师傅搞过的YzmCMS。他审这个CMS的时候说是个同学写的小源码，如今这个CMS已经有官网了，地址是：<a href="http://www.yzmcms.com，不过之前审过74cms，Yii和TP都学过一些，所以审MVC不会很费劲，也就当个入门偏向进阶的审计学习CMS了" target="_blank" rel="noopener">http://www.yzmcms.com，不过之前审过74cms，Yii和TP都学过一些，所以审MVC不会很费劲，也就当个入门偏向进阶的审计学习CMS了</a>~</p>
+<p><img src="http://120.25.80.195:7230/04/3299974566.jpg" alt="1.jpg"></p>
+<p>加起来看了一天左右，先是摸清了文件夹的结构和功能，然后看了下模块控制器方法的调用方法，这就用了一晚上（新司机经验不够，听柠檬师傅说他们审代码一周都好几套源码，给跪了）。然后半个上午时间审了一圈公共函数，发现几个有问题的函数。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br></pre></td><td class="code"><pre><span class="line"><span class="function"><span class="keyword">function</span> <span class="title">grab_image</span><span class="params">($content, $targeturl = <span class="string">''</span>)</span></span>&#123;</span><br><span class="line">	preg_match_all(<span class="string">'/&lt;[img|IMG].*?src=[\\'</span>|\\<span class="string">"](.*?(?:[\\.gif|\\.jpg]))[\\'|\\"</span>].*?[\\/]<span class="meta">?&gt;</span>/<span class="string">', $content, $img_array);</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">    $img_array = isset($img_array[1]) ? array_unique($img_array[1]) : array();</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">	if($img_array) &#123;</span></span><br><span class="line"><span class="string">		$path =  C('</span>upload_file<span class="string">').'</span>/<span class="string">'.date('</span>Ym/d<span class="string">');</span></span><br><span class="line"><span class="string">		$urlpath = SITE_URL.$path;</span></span><br><span class="line"><span class="string">		$imgpath =  YZMPHP_PATH.$path;</span></span><br><span class="line"><span class="string">		if(!is_dir($imgpath)) @mkdir($imgpath, 0777, true);</span></span><br><span class="line"><span class="string">	&#125;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">        foreach($img_array as $key=&gt;$value)&#123;</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">            $val = $value;</span></span><br><span class="line"><span class="string">            if(strpos($value, '</span>http<span class="string">') === false)&#123;</span></span><br><span class="line"><span class="string">                if(!$targeturl) return $content;</span></span><br><span class="line"><span class="string">                $value = $targeturl.$value;</span></span><br><span class="line"><span class="string">            &#125;</span></span><br><span class="line"><span class="string">            $ext = strrchr($value, '</span>.<span class="string">');</span></span><br><span class="line"><span class="string">            if($ext!='</span>.png<span class="string">' &amp;&amp; $ext!='</span>.jpg<span class="string">' &amp;&amp; $ext!='</span>.gif<span class="string">' &amp;&amp; $ext!='</span>.jpeg<span class="string">') return false;</span></span><br><span class="line"><span class="string">            $imgname = date("YmdHis").rand(1,9999).$ext;</span></span><br><span class="line"><span class="string">            $filename = $imgpath.'</span>/<span class="string">'.$imgname;</span></span><br><span class="line"><span class="string">            $urlname = $urlpath.'</span>/<span class="string">'.$imgname;</span></span><br><span class="line"><span class="string">            ob_start();</span></span><br><span class="line"><span class="string">            readfile($value);</span></span><br><span class="line"><span class="string">            $data = ob_get_contents();</span></span><br><span class="line"><span class="string">            ob_end_clean();</span></span><br><span class="line"><span class="string">            file_put_contents($filename, $data);</span></span><br><span class="line"><span class="string"></span></span><br><span class="line"><span class="string">            if(is_file($filename))&#123;</span></span><br><span class="line"><span class="string">			$content = str_replace($val, $urlname, $content);</span></span><br><span class="line"><span class="string">		&#125;else&#123;</span></span><br><span class="line"><span class="string">			return $content;</span></span><br><span class="line"><span class="string">		&#125;</span></span><br><span class="line"><span class="string">	&#125;</span></span><br><span class="line"><span class="string">	return $content;        </span></span><br><span class="line"><span class="string">&#125;</span></span><br></pre></td></tr></table></figure>
+<p>一个读取远程图片保存到本地的函数，图片地址没有验证ip，所以可以读本地图片。一个弱智的SSRF诞生了。不过这也真的没多大的危害，我能想到的就是读一读服务器图片，也再就没啥了。不过值得一提的是，图片地址的验证正则有点问题，不完全是图片格式的代码也可以被匹配到。不过最后他不是直接写入<code>file_put_contents</code>函数，而是先写到缓冲区再把缓冲区的内容写进去。这种写法是第一次看到，学习了。（最后这个没有利用成功）</p>
+<p>通用函数读完，就看到控制器了。先从Admin控制器开始看把（因为Admin的模块在最上面），就惊喜的发现了这么一个地方。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br><span class="line">34</span><br><span class="line">35</span><br><span class="line">36</span><br><span class="line">37</span><br><span class="line">38</span><br><span class="line">39</span><br><span class="line">40</span><br><span class="line">41</span><br><span class="line">42</span><br><span class="line">43</span><br><span class="line">44</span><br><span class="line">45</span><br><span class="line">46</span><br><span class="line">47</span><br><span class="line">48</span><br><span class="line">49</span><br><span class="line">50</span><br><span class="line">51</span><br><span class="line">52</span><br><span class="line">53</span><br><span class="line">54</span><br><span class="line">55</span><br><span class="line">56</span><br><span class="line">57</span><br><span class="line">58</span><br><span class="line">59</span><br><span class="line">60</span><br><span class="line">61</span><br><span class="line">62</span><br><span class="line">63</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">public</span> <span class="function"><span class="keyword">function</span> <span class="title">edit</span><span class="params">()</span> </span>&#123;				</span><br><span class="line"></span><br><span class="line">	<span class="keyword">if</span>(<span class="keyword">isset</span>($_POST[<span class="string">'dosubmit'</span>])) &#123;</span><br><span class="line">		$catid = <span class="keyword">isset</span>($_POST[<span class="string">'catid'</span>]) ? $_POST[<span class="string">'catid'</span>] : <span class="number">0</span>;  <span class="comment">//这里不能写成intval($_POST['catid'])</span></span><br><span class="line">		</span><br><span class="line">		<span class="keyword">if</span>($_POST[<span class="string">'parentid'</span>]==<span class="string">'0'</span>) &#123;</span><br><span class="line">			$_POST[<span class="string">'arrparentid'</span>] = <span class="string">'0'</span>;</span><br><span class="line">		&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">			$data = <span class="keyword">$this</span>-&gt;db-&gt;field(<span class="string">'arrparentid,arrchildid'</span>)-&gt;where(<span class="keyword">array</span>(<span class="string">'catid'</span>=&gt;$_POST[<span class="string">'parentid'</span>]))-&gt;find();</span><br><span class="line">			<span class="keyword">if</span>(strpos($data[<span class="string">'arrparentid'</span>],$catid) !== <span class="keyword">false</span> || $_POST[<span class="string">'parentid'</span>]==$catid) return_json(<span class="keyword">array</span>(<span class="string">'status'</span>=&gt;<span class="number">0</span>,<span class="string">'message'</span>=&gt;<span class="string">'不能将类别移动到自己或自己的子类别中！'</span>));</span><br><span class="line">			$_POST[<span class="string">'arrparentid'</span>] = $data[<span class="string">"arrparentid"</span>].<span class="string">','</span>.$_POST[<span class="string">'parentid'</span>];</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">		<span class="comment">//如果有修改分类的动作</span></span><br><span class="line">		<span class="keyword">if</span>($_POST[<span class="string">'arrparentid'</span>]!=$_POST[<span class="string">'cpath'</span>])&#123;</span><br><span class="line">               $_POST[<span class="string">'cpath'</span>] = safe_replace($_POST[<span class="string">'cpath'</span>]);</span><br><span class="line">               $_POST[<span class="string">'arrparentid'</span>] = safe_replace($_POST[<span class="string">'arrparentid'</span>]);</span><br><span class="line">               $cpath = $_POST[<span class="string">'cpath'</span>].<span class="string">','</span>.$catid;	<span class="comment">//和现有的操作的分类id相连</span></span><br><span class="line">               <span class="keyword">$this</span>-&gt;db-&gt;query(<span class="string">"UPDATE yzmcms_category SET arrparentid=REPLACE(arrparentid, '&#123;$_POST['cpath']&#125;','&#123;$_POST['arrparentid']&#125;') WHERE arrparentid like '&#123;$cpath&#125;%'"</span>);</span><br><span class="line">           &#125;</span><br><span class="line">		</span><br><span class="line">		<span class="keyword">if</span>(!<span class="keyword">isset</span>($_POST[<span class="string">'type'</span>]))&#123;   <span class="comment">//非外部链接，只有外部链接设置了type字段</span></span><br><span class="line">			<span class="comment">//如果PC版URL规则为跟随系统</span></span><br><span class="line">			<span class="keyword">if</span>($_POST[<span class="string">'category_urlrule'</span>] == <span class="string">'0'</span>)&#123;</span><br><span class="line">				$_POST[<span class="string">'pclink'</span>] = get_config(<span class="string">'url_rule'</span>) ? SITE_URL.<span class="string">'list_'</span>.$catid.<span class="string">'.html'</span> : U(<span class="string">'index/index/lists'</span>,<span class="string">'catid='</span>.$catid);</span><br><span class="line">			&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">				$urlrule = get_urlrule($_POST[<span class="string">'category_urlrule'</span>]);  </span><br><span class="line">				$_POST[<span class="string">'pclink'</span>] = SITE_URL.$urlrule[<span class="string">'catdir'</span>].<span class="string">'/'</span>;	<span class="comment">//以URL规则中的catdir为准</span></span><br><span class="line">			&#125;</span><br><span class="line">		&#125;</span><br><span class="line">	</span><br><span class="line">		<span class="keyword">if</span>(<span class="keyword">$this</span>-&gt;db-&gt;update($_POST, <span class="keyword">array</span>(<span class="string">'catid'</span> =&gt; $catid)))&#123;		</span><br><span class="line">			<span class="keyword">if</span>($_POST[<span class="string">'arrparentid'</span>]!=$_POST[<span class="string">'cpath'</span>]) <span class="keyword">$this</span>-&gt;repairs($_POST[<span class="string">'arrparentid'</span>], $_POST[<span class="string">'cpath'</span>]);</span><br><span class="line">			delcache(<span class="string">'categoryinfo'</span>);</span><br><span class="line">			return_json(<span class="keyword">array</span>(<span class="string">'status'</span>=&gt;<span class="number">1</span>,<span class="string">'message'</span>=&gt;L(<span class="string">'operation_success'</span>)));</span><br><span class="line">		&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">			return_json();</span><br><span class="line">		&#125;</span><br><span class="line">		</span><br><span class="line">	&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">		$type = <span class="keyword">isset</span>($_GET[<span class="string">'type'</span>]) ? intval($_GET[<span class="string">'type'</span>]) : <span class="number">0</span>;</span><br><span class="line">		$catid = <span class="keyword">isset</span>($_GET[<span class="string">'catid'</span>]) ? intval($_GET[<span class="string">'catid'</span>]) : <span class="number">0</span>;</span><br><span class="line">		</span><br><span class="line">		$modelinfo = get_modelinfo();</span><br><span class="line">		$urlrule = get_urlrule();</span><br><span class="line">		$tem_style = APP_PATH.<span class="string">'index'</span>.DIRECTORY_SEPARATOR.<span class="string">'view'</span>.DIRECTORY_SEPARATOR.C(<span class="string">'site_theme'</span>).DIRECTORY_SEPARATOR.<span class="string">'config.php'</span>;</span><br><span class="line">		<span class="keyword">if</span>(!is_file($tem_style)) showmsg($tem_style.<span class="string">"文件不存在，请检查！"</span>, <span class="number">5</span>);</span><br><span class="line">		$templets = <span class="keyword">require</span>($tem_style);</span><br><span class="line">		$category_temp = $templets[<span class="string">'category_temp'</span>];</span><br><span class="line">		$list_temp = $templets[<span class="string">'list_temp'</span>];</span><br><span class="line">		$show_temp = $templets[<span class="string">'show_temp'</span>];</span><br><span class="line">		</span><br><span class="line">		$data = <span class="keyword">$this</span>-&gt;db-&gt;where(<span class="keyword">array</span>(<span class="string">'catid'</span> =&gt; $catid))-&gt;find();</span><br><span class="line">		<span class="keyword">if</span>($type == <span class="number">0</span>)&#123;</span><br><span class="line">			<span class="keyword">include</span> <span class="keyword">$this</span>-&gt;admin_tpl(<span class="string">'category_edit'</span>);</span><br><span class="line">		&#125;<span class="keyword">else</span> <span class="keyword">if</span>($type == <span class="number">1</span>)&#123;</span><br><span class="line">			<span class="keyword">include</span> <span class="keyword">$this</span>-&gt;admin_tpl(<span class="string">'category_page_edit'</span>);</span><br><span class="line">		&#125;<span class="keyword">else</span>&#123;</span><br><span class="line">			<span class="keyword">include</span> <span class="keyword">$this</span>-&gt;admin_tpl(<span class="string">'category_link_edit'</span>);</span><br><span class="line">		&#125;			</span><br><span class="line">	&#125;</span><br><span class="line">	</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>重点在<code>$catid = isset($_POST[&#39;catid&#39;]) ? $_POST[&#39;catid&#39;] : 0;  //这里不能写成intval($_POST[&#39;catid&#39;])</code><br>追一下$catid。<br><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line"><span class="keyword">if</span>($_POST[<span class="string">'arrparentid'</span>]!=$_POST[<span class="string">'cpath'</span>])&#123;</span><br><span class="line">    $_POST[<span class="string">'cpath'</span>] = safe_replace($_POST[<span class="string">'cpath'</span>]);</span><br><span class="line">    $_POST[<span class="string">'arrparentid'</span>] = safe_replace($_POST[<span class="string">'arrparentid'</span>]);</span><br><span class="line">    $cpath = $_POST[<span class="string">'cpath'</span>].<span class="string">','</span>.$catid;	<span class="comment">//和现有的操作的分类id相连</span></span><br><span class="line">    <span class="keyword">$this</span>-&gt;db-&gt;query(<span class="string">"UPDATE yzmcms_category SET arrparentid=REPLACE(arrparentid, '&#123;$_POST['cpath']&#125;','&#123;$_POST['arrparentid']&#125;') WHERE arrparentid like '&#123;$cpath&#125;%'"</span>);</span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure></p>
+<p>$catid没有走db类的方法，而是用query函数直接写入数据库查询。</p>
+<p><img src="http://120.25.80.195:7230/04/2534297925.png" alt="1.png"></p>
+<p><img src="http://120.25.80.195:7230/04/596998371.png&#39;,&#39;0&#39;,&#39;1&#39;,null,&#39;post&#39;,&#39;publish&#39;,null,&#39;2&#39;,&#39;1&#39;,&#39;1&#39;,&#39;1&#39;,&#39;0&#39;,&#39;231&#39;)," alt="2.png"></p>
+<p><br></p>
+<h3 id="一点点经验"><a href="#一点点经验" class="headerlink" title="一点点经验"></a>一点点经验</h3><p>一段时间的学习找到多少漏洞并不重要，重要的是，我在这个过程学习到了什么。</p>
+<ol>
+<li>MVC框架的理清对后面审计控制器帮助很大。</li>
+<li>与数据库交互的地方采用统一的db类入口，只要在db类中做好过滤，就很难找到注入。但是不排除有些db类没有的语句而使用了query()进行数据库交互，产生注入的问题。</li>
+<li>一个控制器全都是与数据库交互的方法，还都用了db类，就不要一个劲盯着看了，找不到注入的。</li>
+<li>这次没有花经验在越权和逻辑漏洞上。我认为这类漏洞在现在的cms上会比注入要多（一个猜测）</li>
+<li>api controller 会比 member 或 admin controller 有更多的问题（另一个猜测）</li>
+</ol>
+<p>(‘40’,’1.jpg’,’1-jpg’,’1491291832’,’1491291832’,’a:5:{s:4:”name”;s:5:”1.jpg”;s:4:”path”;s:35:”/usr/uploads/2017/04/3299974566.jpg”;s:4:”size”;i:54826;s:4:”type”;s:3:”jpg”;s:4:”mime”;s:10:”image/jpeg”;}’,’3’,’1’,null,’attachment’,’publish’,null,’0’,’1’,’0’,’1’,’39’,’0’),<br>(‘41’,’1.jpg’,’1-jpg-1’,’1491395174’,’1491395174’,’a:5:{s:4:”name”;s:5:”1.jpg”;s:4:”path”;s:35:”/usr/uploads/2017/04/2242526920.jpg”;s:4:”size”;i:69618;s:4:”type”;s:3:”jpg”;s:4:”mime”;s:10:”image/jpeg”;}’,’1’,’1’,null,’attachment’,’publish’,null,’0’,’1’,’0’,’1’,’45’,’0’),<br>(‘42’,’2.jpg’,’2-jpg’,’1491396679’,’1491396679’,’a:5:{s:4:”name”;s:5:”2.jpg”;s:4:”path”;s:33:”/usr/uploads/2017/04/86846092.jpg”;s:4:”size”;i:50559;s:4:”type”;s:3:”jpg”;s:4:”mime”;s:10:”image/jpeg”;}’,’2’,’1’,null,’attachment’,’publish’,null,’0’,’1’,’0’,’1’,’45’,’0’),<br>(‘43’,’3.jpg’,’3-jpg’,’1491396760’,’1491396760’,’a:5:{s:4:”name”;s:5:”3.jpg”;s:4:”path”;s:35:”/usr/uploads/2017/04/4071474630.jpg”;s:4:”size”;i:125896;s:4:”type”;s:3:”jpg”;s:4:”mime”;s:10:”image/jpeg”;}’,’3’,’1’,null,’attachment’,’publish’,null,’0’,’1’,’0’,’1’,’45’,’0’),<br>(‘44’,’4.jpg’,’4-jpg’,’1491397166’,’1491397166’,’a:5:{s:4:”name”;s:5:”4.jpg”;s:4:”path”;s:35:”/usr/uploads/2017/04/3888413363.jpg”;s:4:”size”;i:97380;s:4:”type”;s:3:”jpg”;s:4:”mime”;s:10:”image/jpeg”;}’,’4’,’1’,null,’attachment’,’publish’,null,’0’,’1’,’0’,’1’,’45’,’0’),<br>(‘45’,’审计入门之路（二）：ourphp’,’45’,’1491401100’,’1493212617’,’</p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/08/19/74CMS_3.5 后台任意文件写入/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/08/19/审计入门之路（二）：ourphp/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2017/08/19/审计入门之路（一）：YzmCMS/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

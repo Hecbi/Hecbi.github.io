@@ -1,0 +1,335 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>CCTF 2017 Web部分 WP | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="Web01点击超链接跳转到绿盟官网，超链接是题目地址。于是抓302包，得到flag。 Web02一个输入框，提示是一个ping工具。输入地址，返回ping的结果。因此考虑命令执行：127.0.0.1%0atac%20ping.php 得到flag地址，再tac一次包含flag的php即可 Web03PHP弱类型，没有什么新知识，调试一下就可以。  Web04提示送分题，这题没做出来，有个地址为?u">
+<meta property="og:type" content="article">
+<meta property="og:title" content="CCTF 2017 Web部分 WP">
+<meta property="og:url" content="http://hebic.me/2017/08/19/NSCTF 2017 Web部分 WriteUp/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="Web01点击超链接跳转到绿盟官网，超链接是题目地址。于是抓302包，得到flag。 Web02一个输入框，提示是一个ping工具。输入地址，返回ping的结果。因此考虑命令执行：127.0.0.1%0atac%20ping.php 得到flag地址，再tac一次包含flag的php即可 Web03PHP弱类型，没有什么新知识，调试一下就可以。  Web04提示送分题，这题没做出来，有个地址为?u">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://120.25.80.195:7230/07/4267951816.png">
+<meta property="og:image" content="http://120.25.80.195:7230/07/2795109844.png">
+<meta property="og:image" content="http://120.25.80.195:7230/07/1499879447.png">
+<meta property="og:image" content="http://120.25.80.195:7230/07/4275711936.png">
+<meta property="og:updated_time" content="2017-08-20T00:55:28.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="CCTF 2017 Web部分 WP">
+<meta name="twitter:description" content="Web01点击超链接跳转到绿盟官网，超链接是题目地址。于是抓302包，得到flag。 Web02一个输入框，提示是一个ping工具。输入地址，返回ping的结果。因此考虑命令执行：127.0.0.1%0atac%20ping.php 得到flag地址，再tac一次包含flag的php即可 Web03PHP弱类型，没有什么新知识，调试一下就可以。  Web04提示送分题，这题没做出来，有个地址为?u">
+<meta name="twitter:image" content="http://120.25.80.195:7230/07/4267951816.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#Web01"><span class="toc-text">Web01</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Web02"><span class="toc-text">Web02</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Web03"><span class="toc-text">Web03</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Web04"><span class="toc-text">Web04</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Web05"><span class="toc-text">Web05</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Web06"><span class="toc-text">Web06</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-NSCTF 2017 Web部分 WriteUp" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">CCTF 2017 Web部分 WP</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.08.19</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2017/08/19/NSCTF 2017 Web部分 WriteUp/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h2 id="Web01"><a href="#Web01" class="headerlink" title="Web01"></a>Web01</h2><p>点击超链接跳转到绿盟官网，超链接是题目地址。于是抓302包，得到flag。</p>
+<h2 id="Web02"><a href="#Web02" class="headerlink" title="Web02"></a>Web02</h2><p>一个输入框，提示是一个ping工具。输入地址，返回ping的结果。因此考虑命令执行：<code>127.0.0.1%0atac%20ping.php</code> 得到flag地址，再tac一次包含flag的php即可</p>
+<h2 id="Web03"><a href="#Web03" class="headerlink" title="Web03"></a>Web03</h2><p>PHP弱类型，没有什么新知识，调试一下就可以。</p>
+<p><img src="http://120.25.80.195:7230/07/4267951816.png" alt="TIM截图20170720123356.png"></p>
+<h2 id="Web04"><a href="#Web04" class="headerlink" title="Web04"></a>Web04</h2><p>提示送分题，这题没做出来，有个地址为?url=git 于是应该想到git泄露。得到一个txt地址，访问之，将里面的内容base64 decode即可。</p>
+<h2 id="Web05"><a href="#Web05" class="headerlink" title="Web05"></a>Web05</h2><p>500分的题，有一处文件读取。我就把所有的地址都读了出来决定慢慢看。页面还没下载就有人做出来了。后来硬着头皮审计，在一处insert找到注入点，但是需要登录两次，比较浪费时间。但还是做出来。结束后试了师傅的方法，结果发现search.php中有一处超简单的like注入，这么简单让我怀疑这简直不是500分的题。<br><img src="http://120.25.80.195:7230/07/2795109844.png" alt="TIM图片20170721213605.png"></p>
+<h2 id="Web06"><a href="#Web06" class="headerlink" title="Web06"></a>Web06</h2><p>Wget工具，本以为是ssrf，还用上了曾经爆出的wget CVE，均以失败告终。后来才知道wget还有-O参数，可以把文件保存在其他地方，这样就绕过了本目录不可写的问题。另外还有一个admin.php，从头至尾没有用上，看来并不是所有发现的东西都有用。<br><img src="http://120.25.80.195:7230/07/1499879447.png" alt="1.png"></p>
+<p><img src="http://120.25.80.195:7230/07/4275711936.png" alt="2.png"></p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/08/19/Pwnhub杯几道题WriteUp/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/08/20/博客搬家小计/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2017/08/19/NSCTF 2017 Web部分 WriteUp/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

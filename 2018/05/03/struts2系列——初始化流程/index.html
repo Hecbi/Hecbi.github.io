@@ -1,0 +1,386 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>struts2系列——初始化流程 | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="配置元素与初始化主线Struts2两大主线的入口程序是相同的，都是StrutsPrepareAndExecuteFilter，入口程序驱动了两条完全不同的主线运行。从init方法开始，主要针对三个元素展开的。  Dispatcher 核心分发器 PrepareOperations     HTTP预处理类 ExecuteOperations     HTTP处理执行类  初始化主线的核心驱动力是将">
+<meta property="og:type" content="article">
+<meta property="og:title" content="struts2系列——初始化流程">
+<meta property="og:url" content="http://hebic.me/2018/05/03/struts2系列——初始化流程/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="配置元素与初始化主线Struts2两大主线的入口程序是相同的，都是StrutsPrepareAndExecuteFilter，入口程序驱动了两条完全不同的主线运行。从init方法开始，主要针对三个元素展开的。  Dispatcher 核心分发器 PrepareOperations     HTTP预处理类 ExecuteOperations     HTTP处理执行类  初始化主线的核心驱动力是将">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:image" content="http://hebic.me/2018/05/03/struts2系列——初始化流程/1.png">
+<meta property="og:image" content="http://hebic.me/2018/05/03/struts2系列——初始化流程/2.png">
+<meta property="og:image" content="http://hebic.me/2018/05/03/struts2系列——初始化流程/3.png">
+<meta property="og:image" content="http://hebic.me/2018/05/03/struts2系列——初始化流程/4.png">
+<meta property="og:image" content="http://hebic.me/2018/05/03/struts2系列——初始化流程/5.png">
+<meta property="og:updated_time" content="2018-05-03T12:55:42.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="struts2系列——初始化流程">
+<meta name="twitter:description" content="配置元素与初始化主线Struts2两大主线的入口程序是相同的，都是StrutsPrepareAndExecuteFilter，入口程序驱动了两条完全不同的主线运行。从init方法开始，主要针对三个元素展开的。  Dispatcher 核心分发器 PrepareOperations     HTTP预处理类 ExecuteOperations     HTTP处理执行类  初始化主线的核心驱动力是将">
+<meta name="twitter:image" content="http://hebic.me/2018/05/03/struts2系列——初始化流程/1.png">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#配置元素与初始化主线"><span class="toc-text">配置元素与初始化主线</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#核心分发器：Dispatcher"><span class="toc-text">核心分发器：Dispatcher</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#配置元素的加载器：Provider"><span class="toc-text">配置元素的加载器：Provider</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#配置元素的构造器：Builder"><span class="toc-text">配置元素的构造器：Builder</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#配置元素的管理类："><span class="toc-text">配置元素的管理类：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#Struts2初始化主线详解"><span class="toc-text">Struts2初始化主线详解</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#容器"><span class="toc-text">容器</span></a></li></ol></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-struts2系列——初始化流程" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">struts2系列——初始化流程</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.05.03</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2018/05/03/struts2系列——初始化流程/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h1 id="配置元素与初始化主线"><a href="#配置元素与初始化主线" class="headerlink" title="配置元素与初始化主线"></a>配置元素与初始化主线</h1><p>Struts2两大主线的入口程序是相同的，都是StrutsPrepareAndExecuteFilter，入口程序驱动了两条完全不同的主线运行。从init方法开始，主要针对三个元素展开的。</p>
+<ul>
+<li>Dispatcher 核心分发器</li>
+<li>PrepareOperations     HTTP预处理类</li>
+<li>ExecuteOperations     HTTP处理执行类</li>
+</ul>
+<p>初始化主线的核心驱动力是将各种形式的配置文件进行一次统一的对象化处理</p>
+<h1 id="核心分发器：Dispatcher"><a href="#核心分发器：Dispatcher" class="headerlink" title="核心分发器：Dispatcher"></a>核心分发器：Dispatcher</h1><p>起：Dispatcher在初始化的时候负责整个Struts2初始化，init方法在Dispatcher创建之初被调用，从而触发整个struts2的初始化过程。</p>
+<p>承：Dispatcher负责对Http请求进行预处理（包括设置Encoding和Locale。对HttpServletRequest进行封装以及准备MVC运行的数据环境），在这个过程中由PrepareOperations在Http请求预处理的阶段调用执行。其中两个createContextMap方法把web容器相关数据封装成了Java对象。这两个方法的核心在于将web请求进行“去容器化”使得后续依赖于web请求的任何操作不受限于web容器对象，做到了解耦合。</p>
+<p>转：在http请求预处理之后（将http请求中与web容器对象相关的全部对象分装成与web容器无关对象封装成与web容器无关对象，构造出一个数据环境。在第二阶段中Dispatcher将这个环境发送到Xwork中。发送使用的方法是serviceAction。serviceAction是整个Dispatcher对象逻辑调度核心方法，也是在Struts2在HTTP请求处理阶段的核心逻辑。</p>
+<p>合：调用cleanup方法清理http请求的处理过程中的请求周期的对象的清理工作。</p>
+<p>Dispatcher涵盖了St2整个生命周期，st2的初始化和http请求都是在dispatcher中完成的。他也是st2余xwork的分界点，将MVC实现与web容器的分界点。</p>
+<h1 id="配置元素的加载器：Provider"><a href="#配置元素的加载器：Provider" class="headerlink" title="配置元素的加载器：Provider"></a>配置元素的加载器：Provider</h1><p>配置元素的加载器是st2初始化主线的重要组成部分，st2定义了一个统一的配置加载器接口ConfigurationProvider。他多重继承了两个类ContainerPriovider和PackageProvider。前者是容器加载器，主要用于加载XML和Properties。实现原理是先进行init，然后调用register方法注册元素。</p>
+<p>后者是事件映射加载器，在这个阶段中将XML配置文件中的package阶段全部内容被翻译成PackageConfig对象供St2使用</p>
+<h1 id="配置元素的构造器：Builder"><a href="#配置元素的构造器：Builder" class="headerlink" title="配置元素的构造器：Builder"></a>配置元素的构造器：Builder</h1><p>容器构造器：ContainerBuilder</p>
+<p>他是一个接口，他的作用是通过一定操作，将容器所需要管理的对象搜集起来，然后通过一个创建方法把容器创建起来。他满足了构造器的两个要求：</p>
+<p>搜集参数：factory alice constant方法</p>
+<p>构造对象：create方法</p>
+<p>事件映射构造器：PackageConfig.Builder</p>
+<h1 id="配置元素的管理类："><a href="#配置元素的管理类：" class="headerlink" title="配置元素的管理类："></a>配置元素的管理类：</h1><p>配置管理元素：Configuration</p>
+<p>配置操作接口：ConfigurationManager</p>
+<p>初始化主线三大元素：</p>
+<p>Dispatcher：初始化主线核心驱动力</p>
+<p>Provider：初始化主线的操作载体</p>
+<p>Builder：初始化主线中元素的构建方式</p>
+<h1 id="Struts2初始化主线详解"><a href="#Struts2初始化主线详解" class="headerlink" title="Struts2初始化主线详解"></a>Struts2初始化主线详解</h1><p><img src="/2018/05/03/struts2系列——初始化流程/1.png" alt="1"></p>
+<h2 id="容器"><a href="#容器" class="headerlink" title="容器"></a>容器</h2><p>面向对象的高级编程语言都是以对象为中心，对象之间的继承、嵌套引用关系所构成的对象树为我们进行对象级别的逻辑操作提供了足够的语法支持，但是对象之间复杂的关系也为对象生命周期带来了问题：</p>
+<ul>
+<li>在程序的运行期如何创建我们需要的对象？</li>
+<li>如何保证被创建出来的对象所关联的依赖关系（关联对象）也可以被正确创建出来？</li>
+</ul>
+<p>在实现一个复杂的业务需求，离不开多个对象彼此协作共同完成。对象关系模型中协作的真正含义正式通过依赖对象的绑住，完成业务逻辑的过程。那么每个对象不得不依赖于其协作对象的引用和构建。那么每个对象对自己逻辑的执行能力是被他依赖的对象反向控制了，又称控制反转。</p>
+<p>控制反转的提出对编程提出了：获取依赖对象 这一基本功能，如果这个功能通过程序逻辑自身实现，会存在很多弊端，于是容器（Container）被提出来了。所以容器是一个与业务逻辑完全无关的额外编程元素，来帮助对象生命周期管理。</p>
+<p>这一编程元素（容器）需要遵循一定原则：</p>
+<ul>
+<li>容器应该被设计成全局、统一的编程元素</li>
+<li>在最大程度上降低容器对业务逻辑的入侵</li>
+<li>容器应该提供简单而全面的对象操作接口</li>
+</ul>
+<p>结论：容器由一系列对象的操作接口构成，其中至少包含获取对象实例以及管理对象之间的依赖关系这两类操作方法。</p>
+<p>进入init_preloadConfiguration()，在getConfiguration方法的调用中，我们不仅获得了Configuration对象的操作接口，也完成了对所有配置元素的调度。追进getConfiguration（ConfigurationManager.java），在这个方法中，调用了reloadContainer这个方法，我们继续追入。（DefaultConfiguration.java）这个方法是容器的初始化方法。</p>
+<p>第0步：</p>
+<p><img src="/2018/05/03/struts2系列——初始化流程/2.png" alt="this. packageContexts. clear(); this. loadedFi1eNames . clear(); vackaeeproviders - ArravList(); "></p>
+<p>内部缓存对象的清理</p>
+<p>第一步：</p>
+<p><img src="/2018/05/03/struts2系列——初始化流程/3.png" alt="img"></p>
+<p>ContainerProperites可以追踪方法，可以看出，这是一个将Properties文件中的键值和ContainerBuilder关联起来的一个工具类。实际上ContainerBuilder收集参数的过程之一。</p>
+<p>ContainerBuilder前面讲过，是container的构造器。</p>
+<p>第二步：</p>
+<p><img src="/2018/05/03/struts2系列——初始化流程/4.png" alt="Iterator i$ — providers . iterator(); while(i$. hasNext()) { Containerprovider containerprovider = (Container-provider) i$. next ( ) ; containerprovlder. init( configuration: this); containerprovider. register(builder, props); props . setConstants (builder); builder. factory (Configuration. class, create(context) { return DefaultConfü ActionContext oldContext ActionContext . getContext() ; "></p>
+<p>第二步是COntainerBuilder收集参数的过程。在containerProvider的register方法，本身就定义了containerBuild作为参数，因此在不同配置的加载方式实现类中，ContainerBuilder将会被调用。</p>
+<p>第三步：</p>
+<p><img src="/2018/05/03/struts2系列——初始化流程/5.png" alt="img"></p>
+<p>调用create把容器创建出来</p>
+<p>第四步：</p>
+<p>初始化时间映射关系。实际上就是对PackageProvider的生命周期调用过程。</p>
+<p>第五步：</p>
+<p>对PackageConfig初始化完成，对他的结构进行runtime改造，让她支持namespace的寻址方式。</p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/04/20/DDCTF2018-专属链接-writeup/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2018/05/06/struts2系列——XWork/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2018/05/03/struts2系列——初始化流程/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

